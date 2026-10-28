@@ -6,7 +6,7 @@ Appearance:
   SeparateExpandedOffsetY: 0
   OffsetYExpanded: 0
   BorderMergedMode: 0
-  ShapeStyle: default
+  ShapeStyle: notch
   SizeScale: '1.0'
   AutoDpiScale: 1
 Behavior:
@@ -24,7 +24,7 @@ Animations:
   AnimationStyle: default
   AnimationSpeed: normal
 Themes:
-  ThemePreset: slate
+  ThemePreset: uint
   CustomPalette: ''
   PillOpacity: 96
   TintIntensity: 72
@@ -35,8 +35,9 @@ Themes:
   DropShadow: 1
   AccentBloom: 100
   TextScale: 100
-  AccentColorMode: auto
-  CustomAccentHex: '#4cc9f0'
+  AccentColorMode: custom
+  CustomAccentHex: '#F62B0A'
+  SecondaryAccentHex: '#FF9A44'
   CalendarAccent: red
   ClockAccentGlow: 1
   FontFamily: ''

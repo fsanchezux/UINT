@@ -2,7 +2,7 @@
 // @id              uint
 // @name            UIN'T
 // @description     Dynamic Island for Windows fork with a top bar for maximized windows, a macOS-style control center, notes, pomodoro and more.
-// @version         1.0.0
+// @version         1.1.0
 // @author          fsanchezux
 // @github          https://github.com/fsanchezux
 // @include         windhawk.exe
@@ -139,13 +139,13 @@ We love community contributions! To ensure high-quality updates, please follow t
   - BorderMergedMode: false
     $name: Border-Merged Mode
     $description: Attach the island flush to the top edge of the monitor without a floating gap.
-  - ShapeStyle: default
+  - ShapeStyle: notch
     $name: Island Shape Style
     $description: Change the overall shape of the island (Pill, Windows 11, or macOS Notch).
     $options:
-      - default: Default (Apple Pill)
+      - notch: macOS Notch (Top Edge Flush, Default)
+      - default: Apple Pill
       - w11: Windows 11 (Rounded Box)
-      - notch: macOS Notch (Top Edge Flush)
   - SizeScale: '1.0'
     $name: Size scale
     $description: Makes the entire island and its contents larger or smaller.
@@ -231,11 +231,12 @@ We love community contributions! To ensure high-quality updates, please follow t
       - ultra-fast: Ultra Fast (2.0x)
   $name: Animations & Performance
 - Themes:
-  - ThemePreset: obsidian
+  - ThemePreset: uint
     $name: Theme preset
     $description: Select a curated color theme, or choose Custom to use your own hex colors below.
     $options:
-      - obsidian: Obsidian - true black (Default)
+      - uint: UIN'T - deep plum with orange accents (Default)
+      - obsidian: Obsidian - true black
       - graphite: Graphite - neutral Windows 11 dark
       - slate: Slate - cool blue-grey
       - nord: Nord - the Nord palette
@@ -278,28 +279,31 @@ We love community contributions! To ensure high-quality updates, please follow t
   - TextScale: 100
     $name: Text size
     $description: 70 to 160. Scales all island text independently of the overall Size scale, so you can keep the island compact while making the clock and labels easier to read.
-  - AccentColorMode: auto
+  - AccentColorMode: custom
     $name: Accent color mode
-    $description: How the glowing accent color is chosen. Auto extracts it from album art.
+    $description: How the glowing accent color is chosen. Custom (the default) always uses the hex below. Auto extracts it from album art.
     $options:
+      - custom: Custom hex (Default)
       - auto: Auto, from album art
       - system: System (Device Accent)
-      - custom: Custom hex
-  - CustomAccentHex: "#4cc9f0"
+  - CustomAccentHex: "#F62B0A"
     $name: Custom accent hex
-    $description: The hex color to use when the accent mode is set to Custom.
+    $description: The island's accent colour when the accent mode is Custom. Default #F62B0A.
+  - SecondaryAccentHex: "#FF9A44"
+    $name: Color de acento secundario
+    $description: 'Color de la barra superior, el centro de control, el editor de notas y la nota fijada: avisos (Bloq Mayús, copiado…), interruptores activos y la app que tienes delante. Por defecto #FF9A44. Con el modo de acento "System" se usa el acento de Windows.'
   - CalendarAccent: red
     $name: Calendar accent color
     $description: Accent color used in the calendar view for month name, weekends, and today's date highlight.
     $options:
-      - red: Default Red
+      - red: Island accent (Default)
       - system: System (Device Accent)
   - ClockAccentGlow: true
     $name: Show clock background circle/glow
     $description: Display the soft accent circle/glow behind the time in the expanded clock view. Turn off for a clean, minimal clock without background glow.
   - FontFamily: ""
     $name: Font family
-    $description: Custom font family for island text (e.g. Segoe UI, Arial, Aptos, Consolas). Leave empty for system default.
+    $description: Custom font family for all text (island, top bar, panels, notes). Leave empty to use Inter (install it from https://rsms.me/inter/), or Segoe UI if Inter is not installed.
   - ContourBorderMode: default
     $name: Contour border
     $description: Choose the island's border style. Default uses the theme's matching border, Auto extracts the border color from album art, and Borderless removes all outer border outlines.
@@ -607,6 +611,9 @@ constexpr UINT WM_APP_APPLY_BACKDROP = WM_APP + 0x448;
 constexpr int ID_HIDE_SHOW_HOTKEY = 1;
 constexpr float kRenderPadX = 28.0f;
 constexpr float kRenderPadY = 22.0f;
+// Bottom corner radius of the notch shape (content DIPs). Kept small so the
+// island reads as part of the screen's top edge rather than a floating pill.
+constexpr float kNotchRadius = 14.0f;
 constexpr UINT kClipboardImageThumbMaxDim = 160;  // longer-side cap for the clipboard image thumbnail
 
 // Layout for the expanded media dashboard. DrawMedia paints every element at an
@@ -688,6 +695,10 @@ namespace IdleStripLayout {
     // the text slide under it. Previously this was stolen from the text box while
     // the pill stayed 96px, so the clock just re-centred into a narrower slot.
     constexpr float kPrivacyReserve = 18.0f;
+
+    // Room on the left for the Pomodoro ring while one is started.
+    constexpr float kPomoRingReserve = 24.0f;
+    constexpr float kPomoRingRadius = 8.0f;
 
     constexpr float kHeight = 36.0f;
 
@@ -858,6 +869,7 @@ enum class ThemePreset {
     Espresso,
     Plum,
     Porcelain,
+    Uint,
     Custom,
 };
 
@@ -878,7 +890,7 @@ struct ThemePalette {
 };
 
 static constexpr ThemePalette kThemePalettes[] = {
-    {L"obsidian",  L"Obsidian (Default)", L"#08080A", L"#FFFFFF", L"#9B9BA5", L"#1E1E22"},
+    {L"obsidian",  L"Obsidian",           L"#08080A", L"#FFFFFF", L"#9B9BA5", L"#1E1E22"},
     {L"graphite",  L"Graphite",           L"#1C1C1E", L"#FFFFFF", L"#A8A8AE", L"#323236"},
     {L"slate",     L"Slate",              L"#111721", L"#E9EEF6", L"#92A2B8", L"#232C3A"},
     {L"nord",      L"Nord",               L"#2E3440", L"#ECEFF4", L"#A7B0C0", L"#3B4252"},
@@ -886,7 +898,11 @@ static constexpr ThemePalette kThemePalettes[] = {
     {L"espresso",  L"Espresso",           L"#1A1512", L"#F6EEE7", L"#B7A395", L"#2E2420"},
     {L"plum",      L"Plum",               L"#16111C", L"#F1EAF6", L"#AC9BB9", L"#281F33"},
     {L"porcelain", L"Porcelain (Light)",  L"#F5F6F8", L"#14161A", L"#5B6270", L"#D8DBE1"},
+    {L"uint",      L"UIN'T (Default)",    L"#170312", L"#FFFFFF", L"#A6929F", L"#2C1428"},
 };
+
+// UIN'T's own palette is the default when nothing else is chosen.
+static constexpr int kDefaultThemeIndex = static_cast<int>(ThemePreset::Uint);
 
 // Custom sits one past the last real palette. Derived, so adding a palette
 // cannot leave a stale literal behind.
@@ -950,8 +966,9 @@ struct Settings {
     int offsetYExpanded = 0;               // #83
     float sizeScale = 1.0f;
     std::wstring fontFamily;
-    AccentMode accentMode = AccentMode::Auto;
-    D2D1_COLOR_F customAccent = D2D1::ColorF(0x4cc9f0);
+    AccentMode accentMode = AccentMode::Custom;
+    D2D1_COLOR_F customAccent = D2D1::ColorF(0xF62B0A);     // UIN'T orange
+    D2D1_COLOR_F secondaryAccent = D2D1::ColorF(0xFF9A44);  // top bar, panels, note editor
     int targetFps = 0; // 0 = Auto
     AnimationStyle animationStyle = AnimationStyle::Default;
     float animationSpeed = 1.0f;
@@ -1013,8 +1030,8 @@ struct Settings {
     bool w11Style = false;
     bool notchStyle = false;
     // Color customization
-    ThemePreset themePreset = ThemePreset::Obsidian;
-    D2D1_COLOR_F pillBgColor = D2D1::ColorF(0.031f, 0.031f, 0.039f, 1.0f); // #08080A
+    ThemePreset themePreset = ThemePreset::Uint;
+    D2D1_COLOR_F pillBgColor = D2D1::ColorF(0x170312); // UIN'T background
     D2D1_COLOR_F textPrimaryColor = D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f); // #FFFFFF
     D2D1_COLOR_F textSecondaryColor = D2D1::ColorF(0.608f, 0.608f, 0.647f, 1.0f); // #9B9BA5
     ContourBorderMode contourBorderMode = ContourBorderMode::Default;
@@ -1227,7 +1244,20 @@ struct FileTrayItem {
     uint64_t sizeBytes = 0;
     bool isDirectory = false;
     BitmapPixels icon;
+    int64_t addedAt = 0;  // Unix seconds; the reference is dropped after kFileTrayLifetime
 };
+
+// Files on the notes card are only references, and they clear themselves a day
+// after being dropped.
+constexpr int64_t kFileTrayLifetime = 24 * 60 * 60;
+
+// Wall-clock seconds, so the 24 hours survive restarts.
+int64_t UnixNow() {
+    FILETIME ft = {};
+    GetSystemTimeAsFileTime(&ft);
+    const uint64_t ticks = (static_cast<uint64_t>(ft.dwHighDateTime) << 32) | ft.dwLowDateTime;
+    return static_cast<int64_t>(ticks / 10000000ULL) - 11644473600LL;
+}
 
 struct SharedState {
     MediaSnapshot media;
@@ -2114,6 +2144,36 @@ D2D1_COLOR_F GetSystemAccentColor() {
     return D2D1::ColorF(0x4cc9f0);
 }
 
+// The accent of the surfaces around the island (top bar, Control Center, note
+// editor, sticky note): alerts, switches that are on, the app in front. The
+// island itself keeps the main accent.
+D2D1_COLOR_F SecondaryAccent() {
+    return g_settings.accentMode == AccentMode::System ? GetSystemAccentColor() : g_settings.secondaryAccent;
+}
+
+// Inter is UIN'T's typeface, but it does not ship with Windows. DirectWrite
+// accepts any family name and silently falls back when it is missing, so the
+// system collection is asked first; without Inter the Segoe UI defaults stay.
+std::wstring InstalledInterFamily() {
+    ComPtr<IDWriteFactory> factory;
+    if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                   reinterpret_cast<IUnknown**>(factory.GetAddressOf())))) {
+        return L"";
+    }
+    ComPtr<IDWriteFontCollection> fonts;
+    if (FAILED(factory->GetSystemFontCollection(&fonts, TRUE)) || !fonts) {
+        return L"";
+    }
+    for (const wchar_t* family : {L"Inter", L"Inter Variable"}) {
+        UINT32 index = 0;
+        BOOL exists = FALSE;
+        if (SUCCEEDED(fonts->FindFamilyName(family, &index, &exists)) && exists) {
+            return family;
+        }
+    }
+    return L"";
+}
+
 void ApplyHideShowHotkey();                 // forward declaration; defined after LoadSettings()
 void ApplyBackdropMaterial(HWND);           // forward declaration; defined after LoadSettings()
 void ApplyBackdropRegion(HWND, int, int);   // forward declaration; defined below PositionOverlayWindow
@@ -2203,17 +2263,22 @@ void LoadSettings() {
         size_t lastChar = fontSetting.find_last_not_of(L" \t\r\n\"'");
         next.fontFamily = fontSetting.substr(firstChar, lastChar - firstChar + 1);
     } else {
-        next.fontFamily.clear();
+        // Empty means UIN'T's own typeface, Inter, when it is installed.
+        next.fontFamily = InstalledInterFamily();
     }
 
+    // Custom is the default: UIN'T's accent stays orange unless asked otherwise.
     const std::wstring accentMode = GetStringSettingCopy(L"Themes.AccentColorMode");
     if (EqualsNoCase(accentMode, L"system")) {
         next.accentMode = AccentMode::System;
-    } else if (EqualsNoCase(accentMode, L"custom")) {
+    } else if (EqualsNoCase(accentMode, L"auto")) {
+        next.accentMode = AccentMode::Auto;
+    } else {
         next.accentMode = AccentMode::Custom;
     }
 
     next.customAccent = ColorFromHex(GetStringSettingCopy(L"Themes.CustomAccentHex"), next.customAccent);
+    next.secondaryAccent = ColorFromHex(GetStringSettingCopy(L"Themes.SecondaryAccentHex"), next.secondaryAccent);
 
     const std::wstring calAccent = GetStringSettingWithFallback(L"Themes.CalendarAccent", L"CalendarWeather.CalendarAccent", L"Modules.CalendarAccent");
     if (EqualsNoCase(calAccent, L"system")) {
@@ -2423,7 +2488,8 @@ void LoadSettings() {
         Wh_SetIntValue(L"NotchStyleOverride", -1);
     }
     bool baseW11 = EqualsNoCase(shapeStr, L"w11");
-    bool baseNotch = EqualsNoCase(shapeStr, L"notch");
+    // The notch (flush with the top edge) is UIN'T's default shape.
+    bool baseNotch = shapeStr.empty() || EqualsNoCase(shapeStr, L"notch");
 
     const int localW11Style = Wh_GetIntValue(L"W11StyleOverride", -1);
     next.w11Style = localW11Style >= 0 ? (localW11Style != 0) : baseW11;
@@ -2545,7 +2611,8 @@ void LoadSettings() {
                                                D2D1::ColorF(0.118f, 0.118f, 0.133f, 1.0f));
     } else {
         const int fromSettings = ThemeIndexFromId(themePresetStr);
-        const int presetIdx = (fromSettings >= 0 && fromSettings < kCustomThemeIndex) ? fromSettings : 0;
+        const int presetIdx = (fromSettings >= 0 && fromSettings < kCustomThemeIndex) ? fromSettings
+                                                                                      : kDefaultThemeIndex;
         next.themePreset = static_cast<ThemePreset>(presetIdx);
         applyPreset(next, presetIdx);
     }
@@ -3014,7 +3081,7 @@ void ApplyBackdropRegion(HWND hwnd, int windowWidth, int windowHeight) {
 
     int radius;
     if (g_settings.notchStyle) {
-        radius = static_cast<int>(std::round(16.0f * g_settings.sizeScale));
+        radius = static_cast<int>(std::round(kNotchRadius * g_settings.sizeScale));
     } else if (g_settings.w11Style) {
         radius = static_cast<int>(std::round(8.0f * g_settings.sizeScale));
     } else {
@@ -3853,6 +3920,7 @@ namespace CcGlyph {
     constexpr const wchar_t* kPower = L"";
     constexpr const wchar_t* kList = L"";
     constexpr const wchar_t* kSettings = L"";
+    constexpr const wchar_t* kBell = L"";
     constexpr const wchar_t* kControlCenter = L"";
 }
 
@@ -3877,7 +3945,7 @@ const wchar_t* CcNetworkGlyph(const CcStatus& s) {
 constexpr wchar_t kCcClass[] = L"Windhawk.DynamicIslandControlCenter";
 constexpr UINT_PTR kCcTimerId = 0x7C01;
 constexpr float kCcWidth = 320.0f;   // DIPs
-constexpr float kCcHeight = 408.0f;  // DIPs
+constexpr float kCcHeight = 462.0f;  // DIPs
 
 enum CcHit {
     kCcHitNone = -1,
@@ -3887,7 +3955,7 @@ enum CcHit {
     kCcHitDnd, kCcHitNightLight, kCcHitCast,
     kCcHitBrightness, kCcHitVolume, kCcHitMute, kCcHitAudioOut,
     kCcHitMediaOpen, kCcHitMediaPlay, kCcHitMediaNext,
-    kCcHitPower, kCcHitBackground, kCcHitSettings,
+    kCcHitPower, kCcHitBackground, kCcHitNotifications, kCcHitSettings,
     kCcHitCount
 };
 
@@ -3915,7 +3983,7 @@ void CcHide();
 struct CcLayout {
     D2D1_RECT_F hit[kCcHitCount] = {};
     D2D1_RECT_F netTile, rightTop, nightTile, castTile, displayTile, soundTile, musicTile;
-    D2D1_RECT_F bottomTiles[3];
+    D2D1_RECT_F bottomTiles[4];  // 2 x 2
     D2D1_RECT_F brightnessTrack, volumeTrack;
     D2D1_RECT_F rows[3];
 };
@@ -3941,9 +4009,10 @@ CcLayout CcComputeLayout() {
     l.soundTile = D2D1::RectF(left, 222.0f, right, 280.0f);
     l.volumeTrack = D2D1::RectF(left + 12.0f, 250.0f, right - 46.0f, 270.0f);
     l.musicTile = D2D1::RectF(left, 290.0f, right, 342.0f);
-    const float bw = (right - left - 20.0f) / 3.0f;
-    for (int i = 0; i < 3; ++i) {
-        l.bottomTiles[i] = D2D1::RectF(left + i * (bw + 10.0f), 352.0f, left + i * (bw + 10.0f) + bw, 396.0f);
+    for (int i = 0; i < 4; ++i) {
+        const float x = left + (i % 2) * (colW + 10.0f);
+        const float y = 352.0f + (i / 2) * 54.0f;
+        l.bottomTiles[i] = D2D1::RectF(x, y, x + colW, y + 44.0f);
     }
 
     auto circle = [](const D2D1_RECT_F& row) {
@@ -3957,7 +4026,7 @@ CcLayout CcComputeLayout() {
     l.hit[kCcHitWifiOpen] = text(l.rows[0]);
     l.hit[kCcHitBtToggle] = circle(l.rows[1]);
     l.hit[kCcHitBtOpen] = text(l.rows[1]);
-    l.hit[kCcHitAirplane] = l.rows[2];
+    l.hit[kCcHitAirplane] = l.rows[2];  // the whole row opens Settings
     l.hit[kCcHitDnd] = l.rightTop;
     l.hit[kCcHitNightLight] = l.nightTile;
     l.hit[kCcHitCast] = l.castTile;
@@ -3975,7 +4044,8 @@ CcLayout CcComputeLayout() {
     l.hit[kCcHitMediaNext] = D2D1::RectF(right - 42.0f, my - 16.0f, right - 10.0f, my + 16.0f);
     l.hit[kCcHitPower] = l.bottomTiles[0];
     l.hit[kCcHitBackground] = l.bottomTiles[1];
-    l.hit[kCcHitSettings] = l.bottomTiles[2];
+    l.hit[kCcHitNotifications] = l.bottomTiles[2];
+    l.hit[kCcHitSettings] = l.bottomTiles[3];
     return l;
 }
 
@@ -4337,8 +4407,7 @@ void CcRender() {
     D2D1_COLOR_F bg = g_settings.pillBgColor;
     const D2D1_COLOR_F text = g_settings.textPrimaryColor;
     const D2D1_COLOR_F muted = g_settings.textSecondaryColor;
-    D2D1_COLOR_F accent = g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent
-                                                                       : GetSystemAccentColor();
+    D2D1_COLOR_F accent = SecondaryAccent();
     accent.a = 1.0f;
     auto tileColor = [&](int hit) {
         return D2D1::ColorF(1, 1, 1, g_ccHover == hit ? 0.13f : 0.08f);
@@ -4383,7 +4452,11 @@ void CcRender() {
             CcDrawToggleRow(l.rows[1], l.hit[kCcHitBtToggle], CcGlyph::kBluetooth, s.btOn, s.btPresent,
                             L"Bluetooth", s.btPresent ? (s.btOn ? L"Activado" : L"Desactivado") : L"No disponible",
                             g_ccHover == kCcHitBtToggle || g_ccHover == kCcHitBtOpen, accent, text, muted);
-            CcDrawToggleRow(l.rows[2], l.hit[kCcHitAirplane], CcGlyph::kAirplane, false, true,
+            // Its hit area is the whole row, so the circle is placed like the other two rows'.
+            const D2D1_RECT_F& air = l.rows[2];
+            const float airCy = (air.top + air.bottom) * 0.5f;
+            const D2D1_RECT_F airCircle = D2D1::RectF(air.left + 8.0f, airCy - 16.0f, air.left + 40.0f, airCy + 16.0f);
+            CcDrawToggleRow(air, airCircle, CcGlyph::kAirplane, false, true,
                             L"Modo avión", L"Configuración", g_ccHover == kCcHitAirplane, accent, text, muted);
         }
 
@@ -4469,12 +4542,13 @@ void CcRender() {
             swprintf_s(batteryText, L"%d%%", battery);
             const std::wstring powerGlyph = hasBattery ? CcBatteryGlyph(battery, charging) : CcGlyph::kPower;
             struct Item { int hit; std::wstring glyph; std::wstring label; };
-            const Item items[3] = {
+            const Item items[4] = {
                 {kCcHitPower, powerGlyph, hasBattery ? std::wstring(batteryText) : L"Energía"},
                 {kCcHitBackground, CcGlyph::kList, L"Segundo plano"},
+                {kCcHitNotifications, CcGlyph::kBell, L"Notificaciones"},
                 {kCcHitSettings, CcGlyph::kSettings, L"Ajustes"},
             };
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 4; ++i) {
                 const D2D1_RECT_F& r = l.bottomTiles[i];
                 CcFill(r, 12.0f, tileColor(items[i].hit));
                 CcTextOut(items[i].glyph, D2D1::RectF(r.left + 4.0f, r.top, r.left + 30.0f, r.bottom),
@@ -4734,6 +4808,11 @@ void CcActivate(int hit) {
             CcHide();
             CcShellOpen(L"taskmgr.exe", L"/0");
             return;
+        case kCcHitNotifications:
+            // Win+N opens Windows' notification centre.
+            CcHide();
+            CcSendKeys({VK_LWIN, 'N'});
+            return;
         case kCcHitSettings:
             CcHide();
             CcShellOpen(L"ms-settings:");
@@ -4880,9 +4959,10 @@ namespace NotchCard {
     constexpr float kPadX = 24.0f;
     constexpr float kRightInset = 30.0f;  // room for the pagination dots
 
-    inline D2D1_RECT_F NotesNewButton(float w) { return D2D1::RectF(w - 120.0f, 12.0f, w - 36.0f, 34.0f); }
-    inline D2D1_RECT_F NotesPrev(float w) { return D2D1::RectF(w - 178.0f, 12.0f, w - 154.0f, 34.0f); }
-    inline D2D1_RECT_F NotesNext(float w) { return D2D1::RectF(w - 150.0f, 12.0f, w - 126.0f, 34.0f); }
+    // A round "+" button, icon only.
+    inline D2D1_RECT_F NotesNewButton(float w) { return D2D1::RectF(w - 64.0f, 10.0f, w - 36.0f, 38.0f); }
+    inline D2D1_RECT_F NotesPrev(float w) { return D2D1::RectF(w - 128.0f, 12.0f, w - 104.0f, 34.0f); }
+    inline D2D1_RECT_F NotesNext(float w) { return D2D1::RectF(w - 100.0f, 12.0f, w - 76.0f, 34.0f); }
     constexpr int kNotesPerPage = 3;
     inline D2D1_RECT_F NotesRow(int i, float w) {
         return D2D1::RectF(20.0f, 44.0f + i * 44.0f, w - kRightInset, 82.0f + i * 44.0f);
@@ -4894,10 +4974,12 @@ namespace NotchCard {
         return D2D1::RectF(row.right - 34.0f, row.top + 5.0f, row.right - 6.0f, row.bottom - 5.0f);
     }
 
-    constexpr float kPomoButtonsY = 140.0f;
-    constexpr float kPomoButtonSpacing = 60.0f;
-    constexpr float kPomoButtonRadius = 18.0f;
+    // Two small buttons under the time: play/pause (0) and stop (1).
+    constexpr float kPomoButtonsY = 134.0f;
+    constexpr float kPomoButtonSpacing = 40.0f;
+    constexpr float kPomoButtonRadius = 15.0f;
     inline float PomoCenterX(float w) { return (w - 10.0f) * 0.5f; }
+    inline float PomoButtonOffset(int i) { return (i == 0 ? -0.5f : 0.5f) * kPomoButtonSpacing; }
 
     inline D2D1_RECT_F WidgetChip(int i, float w) {
         const float colW = (w - 20.0f - kRightInset - 8.0f) * 0.5f;
@@ -4968,9 +5050,12 @@ void FileTraySave() {
     std::wstring all;
     {
         std::lock_guard lock(g_stateMutex);
+        // Each entry is the path, then \x1F and the time it was dropped.
         for (size_t i = 0; i < g_state.fileTrayItems.size(); ++i) {
             if (i) all += kNoteSeparator;
             all += g_state.fileTrayItems[i].path;
+            all += L'\x1F';
+            all += std::to_wstring(g_state.fileTrayItems[i].addedAt);
         }
     }
     Wh_SetStringValue(L"TrayFiles", all.c_str());
@@ -5083,6 +5168,45 @@ std::wstring PomoClockText() {
     return buf;
 }
 
+// The Pomodoro's progress is drawn in yellow wherever it appears.
+constexpr D2D1_COLOR_F kPomoYellow = {1.0f, 0.761f, 0.102f, 1.0f};  // #FFC21A
+
+// Compact progress: shown on the collapsed pill and in the top bar while a
+// Pomodoro is started, except while its "finished" message is up.
+bool PomoRingShown() {
+    return PomoActive() && !PomoFlashing();
+}
+
+// A ring that fills clockwise from the top in yellow over a faint full track.
+void DrawPomoRing(ID2D1Factory* factory, ID2D1RenderTarget* rt, ID2D1SolidColorBrush* brush,
+                  D2D1_POINT_2F c, float r, float stroke, float progress) {
+    if (!factory || !rt || !brush) return;
+    brush->SetOpacity(1.0f);
+    brush->SetColor(D2D1::ColorF(1, 1, 1, 0.16f));
+    rt->DrawEllipse(D2D1::Ellipse(c, r, r), brush, stroke);
+    progress = Clamp(progress, 0.0f, 1.0f);
+    if (progress <= 0.002f) return;
+    brush->SetColor(kPomoYellow);
+    if (progress >= 0.998f) {
+        rt->DrawEllipse(D2D1::Ellipse(c, r, r), brush, stroke);
+        return;
+    }
+    ComPtr<ID2D1PathGeometry> arc;
+    ComPtr<ID2D1GeometrySink> sink;
+    if (FAILED(factory->CreatePathGeometry(&arc)) || FAILED(arc->Open(&sink))) return;
+    const float angle = progress * 2.0f * 3.14159265f;
+    sink->BeginFigure(D2D1::Point2F(c.x, c.y - r), D2D1_FIGURE_BEGIN_HOLLOW);
+    sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(c.x + r * std::sin(angle), c.y - r * std::cos(angle)),
+                                  D2D1::SizeF(r, r), 0.0f, D2D1_SWEEP_DIRECTION_CLOCKWISE,
+                                  progress > 0.5f ? D2D1_ARC_SIZE_LARGE : D2D1_ARC_SIZE_SMALL));
+    sink->EndFigure(D2D1_FIGURE_END_OPEN);
+    if (FAILED(sink->Close())) return;
+    ComPtr<ID2D1StrokeStyle> roundCaps;
+    factory->CreateStrokeStyle(D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND),
+                               nullptr, 0, &roundCaps);
+    rt->DrawGeometry(arc.Get(), brush, stroke, roundCaps.Get());
+}
+
 void PomoToggle() {
     PomoEnsureInit();
     if (g_pomo.running) {
@@ -5111,12 +5235,6 @@ void PomoSetPhase(PomoPhase phase, bool run) {
 void PomoReset() {
     g_pomo.flashUntil = 0.0;
     PomoSetPhase(PomoPhase::Focus, false);
-}
-
-void PomoSkip() {
-    PomoEnsureInit();
-    g_pomo.flashUntil = 0.0;
-    PomoSetPhase(g_pomo.phase == PomoPhase::Focus ? PomoPhase::Break : PomoPhase::Focus, g_pomo.running);
 }
 
 void PomoNotify(const wchar_t* title, const wchar_t* body) {
@@ -5173,8 +5291,10 @@ bool SelectedCardIsNotMedia() {
 // Text the collapsed strip shows in place of the clock for the selected card.
 std::wstring CollapsedCardText(const std::wstring& clock) {
     const int selected = g_idleTab.load(std::memory_order_relaxed);
-    if (selected == kTabPomodoro && PomoActive()) {
-        return std::wstring(L"\u23F1 ") + (PomoFlashing() ? g_pomo.flashText : PomoClockText());
+    // While it runs the ring on the left shows the progress; the time left is
+    // on the card the hover expands to.
+    if (selected == kTabPomodoro && PomoFlashing()) {
+        return g_pomo.flashText;
     }
     if (selected == kTabNotes && NotesHasPinned()) {
         return L"\U0001F4CC " + NoteFirstLine(g_notes[g_pinnedNote], 22);
@@ -5352,7 +5472,7 @@ void NoteEditorPaint(HWND hwnd) {
     DrawTextW(mem, L"Ctrl+Intro guarda · Esc cancela", -1, &title, DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
 
     HGDIOBJ oldPen = SelectObject(mem, GetStockObject(NULL_PEN));
-    D2D1_COLOR_F accent = g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent : GetSystemAccentColor();
+    D2D1_COLOR_F accent = SecondaryAccent();
     const wchar_t* labels[kNeButtonCount] = {L"Eliminar", g_noteEditorPin ? L"Desfijar" : L"Fijar", L"Cancelar", L"Guardar"};
     for (int i = 0; i < kNeButtonCount; ++i) {
         if (i == kNeDelete && g_noteEditorIndex < 0) continue;
@@ -5598,7 +5718,7 @@ void StickyRender(const RECT& screenRect) {
 
     const D2D1_COLOR_F text = g_settings.textPrimaryColor;
     const D2D1_COLOR_F muted = g_settings.textSecondaryColor;
-    D2D1_COLOR_F accent = g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent : GetSystemAccentColor();
+    D2D1_COLOR_F accent = SecondaryAccent();
     accent.a = 1.0f;
     D2D1_COLOR_F bg = g_settings.pillBgColor;
     bg.a = 0.94f;
@@ -5783,6 +5903,25 @@ void OpenPath(const std::wstring& path) {
 // then the notes, three rows a page. On a file row the first button copies the
 // file to the clipboard and the cross takes it off the list (the file itself
 // stays where it is); anywhere else opens it.
+// The file under a point of the notes card -- its row, not its buttons -- or
+// an empty path. Pressing there and moving drags the file out.
+std::wstring NotesFileAt(const MediaContentPoint& cp) {
+    if (!cp.valid) return L"";
+    std::lock_guard lock(g_stateMutex);
+    const int fileCount = static_cast<int>(g_state.fileTrayItems.size());
+    for (int i = 0; i < NotchCard::kNotesPerPage; ++i) {
+        const int entry = g_notesPage * NotchCard::kNotesPerPage + i;
+        if (entry >= fileCount) break;
+        const D2D1_RECT_F row = NotchCard::NotesRow(i, cp.width);
+        if (!NotchPtIn(row, cp.x, cp.y) || NotchPtIn(NotchCard::NotesPinButton(row), cp.x, cp.y) ||
+            NotchPtIn(NotchCard::NotesDeleteButton(row), cp.x, cp.y)) {
+            continue;
+        }
+        return g_state.fileTrayItems[g_state.fileTrayItems.size() - 1 - static_cast<size_t>(entry)].path;
+    }
+    return L"";
+}
+
 void NotesHandleClick(HWND hwnd, const MediaContentPoint& cp) {
     if (!cp.valid) return;
     NotesLoad();
@@ -5855,13 +5994,12 @@ void NotesHandleClick(HWND hwnd, const MediaContentPoint& cp) {
 void PomodoroHandleClick(const MediaContentPoint& cp) {
     if (!cp.valid) return;
     const float cx = NotchCard::PomoCenterX(cp.width);
-    const float reach = NotchCard::kPomoButtonRadius + 6.0f;
-    for (int i = -1; i <= 1; ++i) {
-        const float bx = cx + i * NotchCard::kPomoButtonSpacing;
+    const float reach = NotchCard::kPomoButtonRadius + 4.0f;
+    for (int i = 0; i < 2; ++i) {
+        const float bx = cx + NotchCard::PomoButtonOffset(i);
         if (std::fabs(cp.x - bx) <= reach && std::fabs(cp.y - NotchCard::kPomoButtonsY) <= reach) {
-            if (i < 0) PomoReset();
-            else if (i == 0) PomoToggle();
-            else PomoSkip();
+            if (i == 0) PomoToggle();
+            else PomoReset();
             return;
         }
     }
@@ -5923,6 +6061,11 @@ std::wstring g_topBarSignature;  // what was last painted, to repaint only on ch
 int g_topBarHover = -1;
 HFONT g_topBarFont = nullptr;
 HFONT g_topBarIconFont = nullptr;
+HFONT g_topBarSmallIconFont = nullptr;  // the faint glyph inside the Pomodoro ring
+bool g_topBarPomoHover = false;         // the Pomodoro item shows its time while hovered
+ComPtr<ID2D1Factory> g_topBarD2d;
+ComPtr<ID2D1DCRenderTarget> g_topBarRt;
+ComPtr<ID2D1SolidColorBrush> g_topBarRingBrush;
 int g_topBarFontPx = 0;
 std::wstring g_topBarFontFamily;
 std::unordered_map<HWND, int> g_topBarFixAttempts;
@@ -6396,6 +6539,7 @@ void TopBarEnsureFonts(int barHeight) {
     }
     if (g_topBarFont) DeleteObject(g_topBarFont);
     if (g_topBarIconFont) DeleteObject(g_topBarIconFont);
+    if (g_topBarSmallIconFont) DeleteObject(g_topBarSmallIconFont);
     const wchar_t* family = g_settings.fontFamily.empty() ? L"Segoe UI Variable Display"
                                                           : g_settings.fontFamily.c_str();
     g_topBarFont = CreateFontW(-px, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
@@ -6404,6 +6548,9 @@ void TopBarEnsureFonts(int barHeight) {
     g_topBarIconFont = CreateFontW(-px, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
                                    OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
                                    DEFAULT_PITCH | FF_DONTCARE, L"Segoe Fluent Icons");
+    g_topBarSmallIconFont = CreateFontW(-std::max(8, px * 11 / 20), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+                                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                                        DEFAULT_PITCH | FF_DONTCARE, L"Segoe Fluent Icons");
     g_topBarFontPx = px;
     g_topBarFontFamily = g_settings.fontFamily;
 }
@@ -6526,7 +6673,10 @@ std::vector<TopBarItem> TopBarLayout(HDC dc, int width, int height) {
     widget(g_settings.pomodoroModule && !PomoActive(), kTabPomodoro, L"");
     const size_t widgetCount = right.size();
     if (PomoActive()) {
-        right.push_back({kBarPomodoro, {}, L"", PomoFlashing() ? g_pomo.flashText : PomoClockText()});
+        // A ring by default; the time left only while hovered (or the "finished" message).
+        const bool showText = PomoFlashing() || g_topBarPomoHover;
+        right.push_back({kBarPomodoro, {}, L"",
+                         PomoFlashing() ? g_pomo.flashText : (showText ? PomoClockText() : L"")});
     }
     right.push_back({kBarNetwork, {}, CcNetworkGlyph(s), L""});
     if (s.btPresent) right.push_back({kBarBluetooth, {}, CcGlyph::kBluetooth, L""});
@@ -6643,6 +6793,43 @@ std::vector<TopBarItem> TopBarLayout(HDC dc, int width, int height) {
     return items;
 }
 
+// The Pomodoro item without its time: a yellow progress ring, antialiased
+// with Direct2D straight onto the bar's GDI bitmap.
+void TopBarDrawPomoRing(HDC dc, const RECT& r) {
+    if (!g_topBarD2d &&
+        FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory),
+                                 reinterpret_cast<void**>(g_topBarD2d.GetAddressOf())))) {
+        return;
+    }
+    if (!g_topBarRt) {
+        const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+            D2D1_RENDER_TARGET_TYPE_DEFAULT, D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE));
+        if (FAILED(g_topBarD2d->CreateDCRenderTarget(&props, g_topBarRt.GetAddressOf()))) return;
+        g_topBarRingBrush.Reset();
+    }
+    if (!g_topBarRingBrush && FAILED(g_topBarRt->CreateSolidColorBrush(kPomoYellow, g_topBarRingBrush.GetAddressOf()))) {
+        return;
+    }
+    const RECT box = r;
+    if (FAILED(g_topBarRt->BindDC(dc, &box))) return;
+    const float w = static_cast<float>(r.right - r.left);
+    const float h = static_cast<float>(r.bottom - r.top);
+    const float stroke = std::max(1.5f, h * 0.09f);
+    const float radius = std::max(4.0f, std::min(w, h) * 0.36f);
+    g_topBarRt->BeginDraw();
+    // The DC target does not keep what GDI painted underneath, so the bar's
+    // background is laid down first.
+    D2D1_COLOR_F bg = g_settings.pillBgColor;
+    bg.a = 1.0f;
+    g_topBarRt->Clear(bg);
+    DrawPomoRing(g_topBarD2d.Get(), g_topBarRt.Get(), g_topBarRingBrush.Get(), D2D1::Point2F(w * 0.5f, h * 0.5f),
+                 radius, stroke, PomoProgress());
+    if (g_topBarRt->EndDraw() == D2DERR_RECREATE_TARGET) {
+        g_topBarRt.Reset();
+        g_topBarRingBrush.Reset();
+    }
+}
+
 COLORREF TopBarColor(const D2D1_COLOR_F& c) {
     auto channel = [](float v) {
         return static_cast<BYTE>(std::lround(Clamp(v, 0.0f, 1.0f) * 255.0f));
@@ -6659,7 +6846,7 @@ COLORREF TopBarMix(const D2D1_COLOR_F& a, float amount) {
 }
 
 D2D1_COLOR_F TopBarAccent() {
-    return g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent : GetSystemAccentColor();
+    return SecondaryAccent();
 }
 
 // The background blended towards the accent, for the alert chip.
@@ -6775,16 +6962,18 @@ void TopBarPaint(HWND hwnd) {
             }
             SelectObject(mem, g_topBarIconFont);
             DrawTextW(mem, item.glyph.c_str(), -1, &iconRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
-            if (item.kind == kBarPomodoro && !PomoFlashing() && g_pomo.running) {
-                // Time-left bar under the Pomodoro item.
-                const int barH = std::max(2, height / 14);
-                RECT track = {r.left + 4, r.bottom - barH - 1, r.right - 4, r.bottom - 1};
-                HBRUSH trackBrush = CreateSolidBrush(TopBarMix(g_settings.pillBgColor, 0.18f));
-                FillRect(mem, &track, trackBrush);
-                DeleteObject(trackBrush);
-                RECT done = track;
-                done.right = track.left + static_cast<int>((track.right - track.left) * PomoProgress());
-                FillRect(mem, &done, accentBrush);
+            if (item.kind == kBarPomodoro && item.label.empty()) {
+                // Drawn over the glyph above: the ring, then the glyph again, small and faint.
+                TopBarDrawPomoRing(mem, r);
+                SelectObject(mem, g_topBarSmallIconFont);
+                D2D1_COLOR_F faint = g_settings.pillBgColor;
+                const D2D1_COLOR_F& sec = g_settings.textSecondaryColor;
+                faint.r += (sec.r - faint.r) * 0.45f;
+                faint.g += (sec.g - faint.g) * 0.45f;
+                faint.b += (sec.b - faint.b) * 0.45f;
+                SetTextColor(mem, TopBarColor(faint));
+                DrawTextW(mem, item.glyph.c_str(), -1, &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+                SetTextColor(mem, TopBarColor(g_settings.textPrimaryColor));
             }
         }
 
@@ -7051,9 +7240,12 @@ LRESULT CALLBACK TopBarWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
             return MA_NOACTIVATE;
         case WM_MOUSEMOVE: {
             const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
-            const int hit = TopBarHitTest(hwnd, pt, nullptr);
-            if (hit != g_topBarHover) {
+            TopBarItem hovered = {};
+            const int hit = TopBarHitTest(hwnd, pt, &hovered);
+            const bool pomoHover = hit >= 0 && hovered.kind == kBarPomodoro;
+            if (hit != g_topBarHover || pomoHover != g_topBarPomoHover) {
                 g_topBarHover = hit;
+                g_topBarPomoHover = pomoHover;
                 TRACKMOUSEEVENT tme = {sizeof(tme), TME_LEAVE, hwnd, 0};
                 TrackMouseEvent(&tme);
                 InvalidateRect(hwnd, nullptr, FALSE);
@@ -7061,8 +7253,9 @@ LRESULT CALLBACK TopBarWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
             return 0;
         }
         case WM_MOUSELEAVE:
-            if (g_topBarHover != -1) {
+            if (g_topBarHover != -1 || g_topBarPomoHover) {
                 g_topBarHover = -1;
+                g_topBarPomoHover = false;
                 InvalidateRect(hwnd, nullptr, FALSE);
             }
             return 0;
@@ -10557,7 +10750,7 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
     AppendMenuW(menu, MF_STRING, 10, activeW11 ? L"Use iPhone Pill Style" : L"Use Windows 11 Flyout Style");
     const int activeNotch = Wh_GetIntValue(L"NotchStyleOverride", -1) >= 0
                           ? Wh_GetIntValue(L"NotchStyleOverride", 0)
-                          : EqualsNoCase(shapeStr, L"notch");
+                          : (shapeStr.empty() || EqualsNoCase(shapeStr, L"notch"));
     if (IsBottomPosition(g_settings.position)) {
         AppendMenuW(menu, MF_STRING | MF_GRAYED | MF_DISABLED, 12, L"macOS Notch (Unavailable at Bottom)");
     } else {
@@ -10694,7 +10887,7 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
             std::wstring shapeStr = GetStringSettingCopy(L"Appearance.ShapeStyle");
             const int activeNotchVal = Wh_GetIntValue(L"NotchStyleOverride", -1) >= 0
                                     ? Wh_GetIntValue(L"NotchStyleOverride", 0)
-                                    : EqualsNoCase(shapeStr, L"notch");
+                                    : (shapeStr.empty() || EqualsNoCase(shapeStr, L"notch"));
             Wh_SetIntValue(L"NotchStyleOverride", activeNotchVal ? 0 : 1);
             if (!activeNotchVal) Wh_SetIntValue(L"W11StyleOverride", 0);
             LoadSettings();
@@ -10814,6 +11007,7 @@ struct IdleStripMetrics {
     float weatherWidth = 0.0f;
     bool hasWeather = false;
     bool hasPrivacy = false;
+    bool hasPomoRing = false;
     float totalWidth = IdleStripLayout::kMinWidth;
 };
 
@@ -11056,6 +11250,10 @@ class Renderer {
         }
         if (metrics.hasPrivacy) {
             total += IdleStripLayout::kPrivacyReserve;
+        }
+        metrics.hasPomoRing = PomoRingShown();
+        if (metrics.hasPomoRing) {
+            total += IdleStripLayout::kPomoRingReserve;
         }
 
         total = std::ceil(total / IdleStripLayout::kWidthQuantum) * IdleStripLayout::kWidthQuantum;
@@ -11494,7 +11692,7 @@ class Renderer {
 
         float radius = settings.w11Style ? 8.0f * settings.sizeScale : (rect.bottom - rect.top) * 0.5f;
         if (settings.notchStyle) {
-            radius = 16.0f * settings.sizeScale;
+            radius = kNotchRadius * settings.sizeScale;
         } else if (!settings.w11Style) {
             radius = std::min(radius, 44.0f * settings.sizeScale);
         }
@@ -11572,7 +11770,8 @@ class Renderer {
         // Green dot = camera in use, Orange dot = mic in use.
         // Drawn in top-right corner of pill, outside content area.
         DrawPrivacyDots(state, settings, unscaledRect, now);
-        DrawPomodoroMiniBar(unscaledRect);
+        // The idle strip carries the Pomodoro as a ring; the other pills keep the bar.
+        if (activity.kind != IslandKind::Idle) DrawPomodoroMiniBar(unscaledRect);
 
         target_->SetTransform(oldTransform);
     }
@@ -12709,8 +12908,10 @@ class Renderer {
         const D2D1_COLOR_F accent = CardAccent();
 
         const D2D1_RECT_F add = CardAt(rect, NotchCard::NotesNewButton(w));
-        target_->FillRoundedRectangle(D2D1::RoundedRect(add, 11.0f, 11.0f), fill.Get());
-        DrawCardText(L"+ Nueva", add, smallTextFormat_.Get(), textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        const float addR = (add.right - add.left) * 0.5f;
+        target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(add.left + addR, (add.top + add.bottom) * 0.5f), addR, addR),
+                             fill.Get());
+        DrawCardText(L"", add, iconFormat_.Get(), textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
 
         const int fileCount = static_cast<int>(state.fileTrayItems.size());
         const int noteCount = static_cast<int>(g_notes.size());
@@ -12726,7 +12927,7 @@ class Renderer {
 
         if (total == 0) {
             mutedBrush_->SetOpacity(0.80f);
-            DrawCardText(L"Sin notas. Pulsa «+ Nueva» o arrastra un archivo aquí.",
+            DrawCardText(L"Sin notas. Pulsa + o arrastra un archivo aquí.",
                          D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 70.0f,
                                      rect.right - NotchCard::kRightInset, rect.top + 120.0f),
                          smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
@@ -12773,55 +12974,148 @@ class Renderer {
         }
     }
 
+    // The island's outline, inset, starting at the top centre and running
+    // clockwise -- the path the Pomodoro's progress travels along.
+    ComPtr<ID2D1PathGeometry> CreateOutlinePath(D2D1_RECT_F r, float topRadius, float bottomRadius) {
+        ComPtr<ID2D1PathGeometry> geom;
+        ComPtr<ID2D1GeometrySink> sink;
+        if (FAILED(d2dFactory_->CreatePathGeometry(&geom)) || FAILED(geom->Open(&sink))) return nullptr;
+        const float maxR = std::min(r.right - r.left, r.bottom - r.top) * 0.5f;
+        const float rt = Clamp(topRadius, 0.0f, maxR);
+        const float rb = Clamp(bottomRadius, 0.0f, maxR);
+        auto corner = [&](float x, float y, float radius) {
+            if (radius > 0.0f) {
+                sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(x, y), D2D1::SizeF(radius, radius), 0.0f,
+                                              D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+            }
+        };
+        const D2D1_POINT_2F start = D2D1::Point2F((r.left + r.right) * 0.5f, r.top);
+        sink->BeginFigure(start, D2D1_FIGURE_BEGIN_HOLLOW);
+        sink->AddLine(D2D1::Point2F(r.right - rt, r.top));
+        corner(r.right, r.top + rt, rt);
+        sink->AddLine(D2D1::Point2F(r.right, r.bottom - rb));
+        corner(r.right - rb, r.bottom, rb);
+        sink->AddLine(D2D1::Point2F(r.left + rb, r.bottom));
+        corner(r.left, r.bottom - rb, rb);
+        sink->AddLine(D2D1::Point2F(r.left, r.top + rt));
+        corner(r.left + rt, r.top, rt);
+        sink->AddLine(start);
+        sink->EndFigure(D2D1_FIGURE_END_OPEN);
+        if (FAILED(sink->Close())) return nullptr;
+        return geom;
+    }
+
+    // Pomodoro card, after an iOS timer Live Activity: the progress runs in
+    // yellow around the island's edge, the time it ends sits on top, the time
+    // left in the middle and two small buttons (play/pause, stop) below it.
     void DrawPomodoroTab(D2D1_RECT_F rect) {
         PomoEnsureInit();
-        DrawCardHeader(L"Pomodoro", rect);
         const float w = rect.right - rect.left;
+        const float h = rect.bottom - rect.top;
         const bool focus = g_pomo.phase == PomoPhase::Focus;
-        const std::wstring phase = PomoFlashing() ? g_pomo.flashText
-                                                  : (focus ? L"Concentración" : L"Descanso");
-        DrawCardText(phase, D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 12.0f,
-                                        rect.right - NotchCard::kRightInset, rect.top + 34.0f),
-                     smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+        const bool started = PomoActive();
 
-        DrawCardText(PomoClockText(), CardAt(rect, D2D1::RectF(NotchCard::kPadX, 34.0f, w - NotchCard::kRightInset, 92.0f)),
+        ComPtr<ID2D1SolidColorBrush> fill;
+        target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.10f), &fill);
+        if (!fill) return;
+
+        // Progress along the edge: a faint track, then the elapsed share in yellow.
+        {
+            constexpr float kStroke = 3.0f;
+            const float inset = kStroke * 0.5f + 2.0f;
+            const D2D1_RECT_F edge = D2D1::RectF(rect.left + inset, rect.top + inset, rect.right - inset,
+                                                 rect.bottom - inset);
+            const float radius = std::max(0.0f, ContentIslandRadius(h) - inset);
+            const float topRadius = g_settings.notchStyle ? 0.0f : radius;
+            ComPtr<ID2D1PathGeometry> outline = CreateOutlinePath(edge, topRadius, radius);
+            if (outline) {
+                target_->DrawGeometry(outline.Get(), fill.Get(), kStroke);
+                const float progress = PomoProgress();
+                float length = 0.0f;
+                if (progress > 0.002f && SUCCEEDED(outline->ComputeLength(nullptr, &length)) && length > 0.0f) {
+                    // A dash as long as the elapsed share, then a gap longer than
+                    // the rest. Dash lengths are in units of the stroke width.
+                    const float dashes[2] = {progress * length / kStroke, length / kStroke + 1.0f};
+                    ComPtr<ID2D1StrokeStyle> style;
+                    d2dFactory_->CreateStrokeStyle(
+                        D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_FLAT, D2D1_CAP_STYLE_FLAT, D2D1_CAP_STYLE_FLAT,
+                                                    D2D1_LINE_JOIN_ROUND, 10.0f, D2D1_DASH_STYLE_CUSTOM, 0.0f),
+                        dashes, 2, &style);
+                    fill->SetColor(kPomoYellow);
+                    target_->DrawGeometry(outline.Get(), fill.Get(), kStroke, style.Get());
+                }
+            }
+        }
+
+        // Top line: the phase, and while it runs, a bell with the time it ends.
+        const float cx = rect.left + NotchCard::PomoCenterX(w);
+        {
+            std::wstring line;
+            bool bell = false;
+            if (PomoFlashing()) {
+                line = g_pomo.flashText;
+            } else if (g_pomo.running) {
+                SYSTEMTIME local = {};
+                GetLocalTime(&local);
+                FILETIME ft = {};
+                SystemTimeToFileTime(&local, &ft);
+                ULARGE_INTEGER t = {};
+                t.LowPart = ft.dwLowDateTime;
+                t.HighPart = ft.dwHighDateTime;
+                t.QuadPart += static_cast<ULONGLONG>(std::ceil(PomoRemaining())) * 10000000ULL;
+                ft.dwLowDateTime = t.LowPart;
+                ft.dwHighDateTime = t.HighPart;
+                SYSTEMTIME end = {};
+                FileTimeToSystemTime(&ft, &end);
+                line = std::wstring(focus ? L"Concentración" : L"Descanso") + L"  ·  " +
+                       FormatIslandTime(end, g_settings.clockFollowSystem, g_settings.use24HourClock, false);
+                bell = true;
+            } else {
+                line = started ? L"En pausa" : (focus ? L"Concentración" : L"Descanso");
+            }
+            float textW = 0.0f;
+            ComPtr<IDWriteTextLayout> layout;
+            if (smallTextFormat_ &&
+                SUCCEEDED(dwriteFactory_->CreateTextLayout(line.c_str(), static_cast<UINT32>(line.size()),
+                                                           smallTextFormat_.Get(), 1000.0f, 40.0f, &layout))) {
+                DWRITE_TEXT_METRICS m = {};
+                if (SUCCEEDED(layout->GetMetrics(&m))) textW = m.widthIncludingTrailingWhitespace;
+            }
+            const float iconW = bell ? 18.0f : 0.0f;
+            const float left = cx - (textW + iconW) * 0.5f;
+            mutedBrush_->SetOpacity(0.85f);
+            if (bell) {
+                DrawCardText(L"", D2D1::RectF(left, rect.top + 14.0f, left + 14.0f, rect.top + 34.0f),
+                             mediaNavIconFormat_ ? mediaNavIconFormat_.Get() : iconFormat_.Get(), mutedBrush_.Get(),
+                             DWRITE_TEXT_ALIGNMENT_CENTER);
+            }
+            DrawCardText(line, D2D1::RectF(left + iconW, rect.top + 14.0f, left + iconW + textW + 4.0f, rect.top + 34.0f),
+                         smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+            mutedBrush_->SetOpacity(0.75f);
+        }
+
+        // The time left.
+        DrawCardText(PomoClockText(), D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 36.0f,
+                                                  rect.right - NotchCard::kRightInset, rect.top + 106.0f),
                      hugeTextFormat_ ? hugeTextFormat_.Get() : clockFormat_.Get(), textBrush_.Get(),
                      DWRITE_TEXT_ALIGNMENT_CENTER);
 
-        ComPtr<ID2D1SolidColorBrush> fill;
-        target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.14f), &fill);
-        if (!fill) return;
-        const D2D1_COLOR_F accent = CardAccent();
-        const D2D1_RECT_F track = CardAt(rect, D2D1::RectF(48.0f, 98.0f, w - 58.0f, 104.0f));
-        target_->FillRoundedRectangle(D2D1::RoundedRect(track, 3.0f, 3.0f), fill.Get());
-        const float progress = PomoProgress();
-        if (progress > 0.0f) {
-            fill->SetColor(focus ? accent : D2D1::ColorF(0.30f, 0.80f, 0.45f, 1.0f));
-            target_->FillRoundedRectangle(
-                D2D1::RoundedRect(D2D1::RectF(track.left, track.top, track.left + (track.right - track.left) * progress,
-                                              track.bottom), 3.0f, 3.0f), fill.Get());
+        // Play/pause and stop, small, below the time.
+        const float by = rect.top + NotchCard::kPomoButtonsY;
+        for (int i = 0; i < 2; ++i) {
+            const float bx = cx + NotchCard::PomoButtonOffset(i);
+            const float r = NotchCard::kPomoButtonRadius;
+            const bool stop = i == 1;
+            fill->SetColor(stop ? D2D1::ColorF(1.0f, 0.23f, 0.19f, 0.22f) : D2D1::ColorF(1, 1, 1, 0.14f));
+            target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(bx, by), r, r), fill.Get());
+            const wchar_t* glyph = stop ? L"" : (g_pomo.running ? L"" : L"");
+            ComPtr<ID2D1SolidColorBrush> glyphBrush;
+            target_->CreateSolidColorBrush(stop ? D2D1::ColorF(1.0f, 0.36f, 0.32f, 1.0f) : D2D1::ColorF(1, 1, 1, 0.95f),
+                                           &glyphBrush);
+            DrawCardText(glyph, D2D1::RectF(bx - r, by - r, bx + r, by + r),
+                         mediaNavIconFormat_ ? mediaNavIconFormat_.Get() : iconFormat_.Get(),
+                         glyphBrush ? glyphBrush.Get() : textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
         }
-
-        const float cx = rect.left + NotchCard::PomoCenterX(w);
-        const float cy = rect.top + NotchCard::kPomoButtonsY;
-        const wchar_t* glyphs[3] = {L"", g_pomo.running ? L"" : L"", L""};
-        for (int i = -1; i <= 1; ++i) {
-            const float bx = cx + i * NotchCard::kPomoButtonSpacing;
-            const float r = NotchCard::kPomoButtonRadius + (i == 0 ? 3.0f : 0.0f);
-            fill->SetColor(i == 0 ? accent : D2D1::ColorF(1, 1, 1, 0.12f));
-            target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(bx, cy), r, r), fill.Get());
-            DrawCardText(glyphs[i + 1], D2D1::RectF(bx - r, cy - r, bx + r, cy + r), iconFormat_.Get(), textBrush_.Get(),
-                         DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-
-        wchar_t footer[64] = {};
-        swprintf_s(footer, L"%d min · descanso %d min · hechos: %d", ClampInt(g_settings.pomodoroFocusMinutes, 1, 180),
-                   ClampInt(g_settings.pomodoroBreakMinutes, 1, 180), g_pomo.completedFocus);
-        mutedBrush_->SetOpacity(0.70f);
-        DrawCardText(footer, D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 162.0f,
-                                         rect.right - NotchCard::kRightInset, rect.top + 180.0f),
-                     smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
-        mutedBrush_->SetOpacity(0.75f);
     }
 
     void DrawWidgetsTab(D2D1_RECT_F rect) {
@@ -12857,7 +13151,7 @@ class Renderer {
         target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.18f), &fill);
         if (!fill) return;
         target_->FillRoundedRectangle(D2D1::RoundedRect(track, 1.5f, 1.5f), fill.Get());
-        fill->SetColor(g_pomo.phase == PomoPhase::Focus ? CardAccent() : D2D1::ColorF(0.30f, 0.80f, 0.45f, 1.0f));
+        fill->SetColor(kPomoYellow);
         target_->FillRoundedRectangle(
             D2D1::RoundedRect(D2D1::RectF(track.left, track.top, track.left + (track.right - track.left) * PomoProgress(),
                                           track.bottom), 1.5f, 1.5f), fill.Get());
@@ -13338,9 +13632,22 @@ class Renderer {
             // its lane rather than shrinking the text box out from under the clock.
             const float privacyReserve =
                 idleMetrics.hasPrivacy ? IdleStripLayout::kPrivacyReserve * scale : 0.0f;
-            const float innerLeft = rect.left + IdleStripLayout::kPadX * scale;
+            const float ringReserve =
+                idleMetrics.hasPomoRing ? IdleStripLayout::kPomoRingReserve * scale : 0.0f;
+            const float innerLeft = rect.left + IdleStripLayout::kPadX * scale + ringReserve;
             const float innerRight =
                 rect.right - IdleStripLayout::kPadX * scale - privacyReserve;
+
+            if (idleMetrics.hasPomoRing) {
+                // The Pomodoro's progress on the left; its time left is on the card.
+                ComPtr<ID2D1SolidColorBrush> ringBrush;
+                target_->CreateSolidColorBrush(kPomoYellow, &ringBrush);
+                const float ringR = IdleStripLayout::kPomoRingRadius * scale;
+                const D2D1_POINT_2F ringC = D2D1::Point2F(rect.left + IdleStripLayout::kPadX * scale + ringR,
+                                                          (rect.top + rect.bottom) * 0.5f);
+                DrawPomoRing(d2dFactory_.Get(), target_.Get(), ringBrush.Get(), ringC, ringR, 2.4f * scale,
+                             PomoProgress());
+            }
 
             float blockWidth = idleMetrics.clockWidth;
             if (idleMetrics.hasWeather) {
@@ -13655,7 +13962,7 @@ class Renderer {
     // art's top-left corner (visible from roughly 2x upwards).
     float ContentIslandRadius(float contentHeight) const {
         if (g_settings.notchStyle) {
-            return 16.0f;
+            return kNotchRadius;
         }
         if (g_settings.w11Style) {
             return 8.0f;
@@ -15469,6 +15776,7 @@ FileTrayItem MakeFileTrayItem(const std::wstring& path) {
     if (item.name.empty()) {
         item.name = path;
     }
+    item.addedAt = UnixNow();
     WIN32_FILE_ATTRIBUTE_DATA attr = {};
     if (GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &attr)) {
         item.isDirectory = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
@@ -15503,19 +15811,31 @@ void FileTrayAdd(std::vector<FileTrayItem> items) {
     }
 }
 
-// Brings back the files saved by FileTraySave, skipping any that are gone.
+// Brings back the files saved by FileTraySave, skipping any that are gone or
+// were dropped more than a day ago. Entries saved before the drop time was kept
+// count from now.
 void FileTrayLoad() {
     std::vector<wchar_t> buffer(65536, L'\0');
     Wh_GetStringValue(L"TrayFiles", buffer.data(), buffer.size());
     buffer.back() = L'\0';
     const std::wstring all = buffer.data();
+    const int64_t now = UnixNow();
     std::vector<FileTrayItem> items;
     size_t start = 0;
     while (start < all.size()) {
         const size_t end = all.find(kNoteSeparator, start);
-        const std::wstring path = all.substr(start, end == std::wstring::npos ? std::wstring::npos : end - start);
-        if (!path.empty() && GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES) {
-            items.push_back(MakeFileTrayItem(path));
+        std::wstring path = all.substr(start, end == std::wstring::npos ? std::wstring::npos : end - start);
+        int64_t addedAt = now;
+        const size_t mark = path.find(L'\x1F');
+        if (mark != std::wstring::npos) {
+            addedAt = _wtoi64(path.c_str() + mark + 1);
+            path.resize(mark);
+        }
+        if (!path.empty() && now - addedAt < kFileTrayLifetime &&
+            GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES) {
+            FileTrayItem item = MakeFileTrayItem(path);
+            item.addedAt = addedAt;
+            items.push_back(std::move(item));
         }
         if (end == std::wstring::npos) break;
         start = end + 1;
@@ -15523,6 +15843,137 @@ void FileTrayLoad() {
     if (!items.empty()) {
         FileTrayAdd(std::move(items));
     }
+    FileTraySave();  // drops the expired entries from storage too
+}
+
+// Forgets files dropped more than a day ago and files that no longer exist
+// (deleted, or moved by dragging them out). Cheap: the list holds a handful.
+void FileTrayPrune() {
+    const int64_t now = UnixNow();
+    bool changed = false;
+    {
+        std::lock_guard lock(g_stateMutex);
+        auto& items = g_state.fileTrayItems;
+        const size_t before = items.size();
+        items.erase(std::remove_if(items.begin(), items.end(),
+                                   [&](const FileTrayItem& item) {
+                                       return now - item.addedAt >= kFileTrayLifetime ||
+                                              GetFileAttributesW(item.path.c_str()) == INVALID_FILE_ATTRIBUTES;
+                                   }),
+                    items.end());
+        changed = items.size() != before;
+    }
+    if (changed) {
+        FileTraySave();
+        g_layoutDirty = true;
+    }
+}
+
+// Takes the files of a drop onto the island into the notes card's list.
+void FileTrayTakeDrop(HDROP drop) {
+    const UINT count = DragQueryFileW(drop, 0xFFFFFFFF, nullptr, 0);
+    std::vector<FileTrayItem> added;
+    added.reserve(count);
+    for (UINT i = 0; i < count; ++i) {
+        wchar_t path[MAX_PATH] = {};
+        if (DragQueryFileW(drop, i, path, ARRAYSIZE(path)) != 0) {
+            added.push_back(MakeFileTrayItem(path));
+        }
+    }
+    if (!added.empty()) {
+        FileTrayAdd(std::move(added));
+        FileTraySave();
+    }
+}
+
+// The notes card, on its first page: where a file being dragged in will land.
+void FileTrayShowNotes() {
+    SelectTab(kTabNotes);
+    g_notesPage = 0;
+    g_layoutDirty = true;
+}
+
+bool g_oleReady = false;  // OleInitialize succeeded on the render thread
+
+// Drop target for the island. As soon as a file is dragged over it the notes
+// card comes up, and a drop keeps a reference to the file there.
+class IslandDropTarget final : public IDropTarget {
+   public:
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (!ppv) return E_POINTER;
+        if (riid == __uuidof(IUnknown) || riid == __uuidof(IDropTarget)) {
+            *ppv = static_cast<IDropTarget*>(this);
+            AddRef();
+            return S_OK;
+        }
+        *ppv = nullptr;
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return InterlockedIncrement(&refs_); }
+    ULONG STDMETHODCALLTYPE Release() override {
+        const LONG refs = InterlockedDecrement(&refs_);
+        if (refs == 0) delete this;
+        return refs;
+    }
+
+    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject* data, DWORD, POINTL, DWORD* effect) override {
+        FORMATETC format = {CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
+        accepts_ = (g_settings.notesModule || g_settings.fileTrayModule) && data &&
+                   data->QueryGetData(&format) == S_OK;
+        if (accepts_) FileTrayShowNotes();
+        *effect = Effect(*effect);
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE DragOver(DWORD, POINTL, DWORD* effect) override {
+        *effect = Effect(*effect);
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE DragLeave() override {
+        accepts_ = false;
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Drop(IDataObject* data, DWORD, POINTL, DWORD* effect) override {
+        *effect = Effect(*effect);
+        if (accepts_ && data) {
+            FORMATETC format = {CF_HDROP, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
+            STGMEDIUM medium = {};
+            if (SUCCEEDED(data->GetData(&format, &medium))) {
+                FileTrayTakeDrop(static_cast<HDROP>(medium.hGlobal));
+                ReleaseStgMedium(&medium);
+            }
+            FileTrayShowNotes();
+        }
+        accepts_ = false;
+        return S_OK;
+    }
+
+   private:
+    // Only a reference is kept, so a link is offered first; the file never moves.
+    DWORD Effect(DWORD allowed) const {
+        if (!accepts_) return DROPEFFECT_NONE;
+        if (allowed & DROPEFFECT_LINK) return DROPEFFECT_LINK;
+        return allowed & DROPEFFECT_COPY;
+    }
+
+    LONG refs_ = 1;
+    bool accepts_ = false;
+};
+
+// Drags a listed file out of the island as if it came from its folder: the
+// shell's own data object for it, so a folder, a browser upload box or any app
+// gets the real file. Returns once the drop is over.
+void FileTrayDragOut(HWND hwnd, const std::wstring& path) {
+    // BHID_DataObject, spelled out to avoid linking uuid.lib for one GUID.
+    static constexpr GUID kBhidDataObject = {0xB8C0BD9F, 0xED24, 0x455C, {0x83, 0xE6, 0xD5, 0x39, 0x0C, 0x4F, 0xE8, 0xC4}};
+    if (!g_oleReady) return;
+    ComPtr<IShellItem> item;
+    if (FAILED(SHCreateItemFromParsingName(path.c_str(), nullptr, IID_PPV_ARGS(&item)))) return;
+    ComPtr<IDataObject> data;
+    if (FAILED(item->BindToHandler(nullptr, kBhidDataObject, IID_PPV_ARGS(&data)))) return;
+    DWORD effect = DROPEFFECT_NONE;
+    SHDoDragDrop(hwnd, data.Get(), nullptr, DROPEFFECT_COPY | DROPEFFECT_MOVE | DROPEFFECT_LINK, &effect);
+    // A move (into a folder on the same drive) leaves nothing to point at.
+    FileTrayPrune();
 }
 
 // The artwork, title and artist of the expanded media card: the only place a
@@ -15542,6 +15993,7 @@ bool g_suppressNextIslandClick = false;
 LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     static POINT s_touchStart = {0, 0};
     static ULONGLONG s_touchStartTime = 0;
+    static std::wstring s_pressedFile;  // a file row of the notes card held down, until it is dragged out
     switch (msg) {
         case WM_CREATE:
             AddClipboardFormatListener(hwnd);
@@ -15549,8 +16001,17 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             if (g_taskbarCreatedMessage == 0) g_taskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
             RegisterShellHookWindow(hwnd);
             // File Tray (#33). Accepting drops costs nothing when the module is
-            // off; WM_DROPFILES just ignores them in that case.
-            DragAcceptFiles(hwnd, TRUE);
+            // off; the drop target ignores them in that case. OLE is what lets
+            // the notes card open while a file is still being dragged in, and
+            // files be dragged back out; WM_DROPFILES is the fallback without it.
+            g_oleReady = SUCCEEDED(OleInitialize(nullptr));
+            {
+                IslandDropTarget* target = new IslandDropTarget();
+                if (!g_oleReady || FAILED(RegisterDragDrop(hwnd, target))) {
+                    DragAcceptFiles(hwnd, TRUE);
+                }
+                target->Release();  // RegisterDragDrop holds its own reference
+            }
             return 0;
 
         case WM_DROPFILES: {
@@ -15561,31 +16022,17 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 return 0;
             }
 
-            const UINT count = DragQueryFileW(drop, 0xFFFFFFFF, nullptr, 0);
-            std::vector<FileTrayItem> added;
-            added.reserve(count);
-            for (UINT i = 0; i < count; ++i) {
-                wchar_t path[MAX_PATH] = {};
-                if (DragQueryFileW(drop, i, path, ARRAYSIZE(path)) != 0) {
-                    added.push_back(MakeFileTrayItem(path));
-                }
-            }
+            FileTrayTakeDrop(drop);
             DragFinish(drop);
-
-            if (!added.empty()) {
-                FileTrayAdd(std::move(added));
-                FileTraySave();
-            }
 
             // Jump to the notes card, on its first page, so the drop is visibly
             // acknowledged.
-            SelectTab(kTabNotes);
-            g_notesPage = 0;
-            g_layoutDirty = true;
+            FileTrayShowNotes();
             return 0;
         }
 
         case WM_DESTROY:
+            if (g_oleReady) RevokeDragDrop(hwnd);
             RemoveClipboardFormatListener(hwnd);
             DeregisterShellHookWindow(hwnd);
             return 0;
@@ -15747,6 +16194,16 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 s_touchStart.y = yPos;
                 s_touchStartTime = GetTickCount64();
 
+                // A file on the expanded notes card: moving while pressed drags it out.
+                s_pressedFile.clear();
+                if (CurrentTabId(g_settings) == kTabNotes) {
+                    const MediaContentPoint cp = MediaContentFromClient(xPos, yPos);
+                    if (cp.valid && cp.height > 80.0f) {
+                        s_pressedFile = NotesFileAt(cp);
+                        if (!s_pressedFile.empty()) SetCapture(hwnd);
+                    }
+                }
+
                 bool mediaActive = false;
                 {
                     std::lock_guard lock(g_stateMutex);
@@ -15787,6 +16244,21 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
             const int xPos = GET_X_LPARAM(lParam);
             const int yPos = GET_Y_LPARAM(lParam);
+
+            if (!s_pressedFile.empty() && (wParam & MK_LBUTTON) &&
+                (std::abs(xPos - s_touchStart.x) > GetSystemMetrics(SM_CXDRAG) ||
+                 std::abs(yPos - s_touchStart.y) > GetSystemMetrics(SM_CYDRAG))) {
+                const std::wstring path = std::move(s_pressedFile);
+                s_pressedFile.clear();
+                if (GetCapture() == hwnd) ReleaseCapture();
+                FileTrayDragOut(hwnd, path);
+                // The drag loop took the button-up; drop any that is left so it
+                // does not open the file as a click.
+                MSG pending = {};
+                while (PeekMessageW(&pending, hwnd, WM_LBUTTONUP, WM_LBUTTONUP, PM_REMOVE)) {
+                }
+                return 0;
+            }
 
             if (g_scrubbing.load()) {
                 const MediaContentPoint cp = MediaContentFromClient(xPos, yPos);
@@ -15852,6 +16324,12 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
         case WM_LBUTTONUP:
             {
+                // Released without dragging: an ordinary click on the file row.
+                if (!s_pressedFile.empty()) {
+                    s_pressedFile.clear();
+                    if (GetCapture() == hwnd) ReleaseCapture();
+                }
+
                 if (g_scrubbing.load()) {
                     g_scrubbing = false;
                     ReleaseCapture();
@@ -16480,6 +16958,15 @@ DWORD WINAPI RenderThreadProc(void*) {
         GetWindowRect(hwnd, &windowRect);
         POINT cursor = {};
         GetCursorPos(&cursor);
+
+        // Files on the notes card expire a day after being dropped.
+        {
+            static double s_lastTrayPrune = 0.0;
+            if (now - s_lastTrayPrune > 60.0) {
+                s_lastTrayPrune = now;
+                FileTrayPrune();
+            }
+        }
 
         // Dropped down from the bar: a click anywhere but the island, the bar
         // or a panel opened from them folds it away again.
@@ -17146,6 +17633,13 @@ DWORD WINAPI RenderThreadProc(void*) {
         DeleteObject(g_topBarIconFont);
         g_topBarIconFont = nullptr;
     }
+    if (g_topBarSmallIconFont) {
+        DeleteObject(g_topBarSmallIconFont);
+        g_topBarSmallIconFont = nullptr;
+    }
+    g_topBarRingBrush.Reset();
+    g_topBarRt.Reset();
+    g_topBarD2d.Reset();
     UnregisterClassW(kTopBarClass, wc.hInstance);
 
     CcHide();
@@ -17193,6 +17687,10 @@ DWORD WINAPI RenderThreadProc(void*) {
     g_hwnd = nullptr;
     UnregisterClassW(kWindowClass, wc.hInstance);
 
+    if (g_oleReady) {
+        OleUninitialize();
+        g_oleReady = false;
+    }
     if (SUCCEEDED(hrCo)) {
         CoUninitialize();
     }

@@ -116,6 +116,23 @@ El archivo usa finales de línea CRLF.
 - **Paleta propia** (`Themes.CustomPalette`): hasta 5 hex separados por comas — fondo, texto,
   secundario, acento, borde. Si el primero es válido, manda sobre el preset y los colores sueltos.
 
+### 1.1.0 (Linear FSA-115..121)
+- **Paleta UIN'T** (`ThemePreset::Uint`, `kDefaultThemeIndex`, por defecto): fondo #170312. Acento de la isla
+  #F62B0A (`AccentColorMode` custom por defecto). `SecondaryAccent()` (#FF9A44, `Themes.SecondaryAccentHex`)
+  es el acento de barra superior, centro de control, editor de notas y nota fijada (antes el acento de Windows).
+- **Forma**: notch por defecto (también con `ShapeStyle` vacío), radio inferior `kNotchRadius` = 14.
+- **Fuente**: `FontFamily` vacío → `InstalledInterFamily()` (Inter / Inter Variable si están instaladas).
+- **Centro de control**: 4 atajos abajo en 2×2 (Energía, Segundo plano, Notificaciones = Win+N, Ajustes);
+  `kCcHeight` 462. La fila de modo avión dibuja su círculo como las otras (su hit es toda la fila).
+- **Pomodoro**: `kPomoYellow`, `DrawPomoRing()`. Pastilla recogida (idle) = anillo a la izquierda
+  (`IdleStripLayout::kPomoRingReserve`); barra superior = anillo con Direct2D sobre el bitmap GDI
+  (`TopBarDrawPomoRing`), tiempo solo con `g_topBarPomoHover`. Tarjeta: progreso por el borde de la isla
+  (`CreateOutlinePath` + dash), hora de fin con campana, botones play/pausa y parar (`PomoButtonOffset`).
+- **Archivos**: `IslandDropTarget` (OLE, `RegisterDragDrop`; `WM_DROPFILES` solo de reserva) abre Notas
+  en `DragEnter`. Arrastrar una fila de archivo (`NotesFileAt`, umbral `SM_CXDRAG`) → `FileTrayDragOut`
+  (`SHDoDragDrop` con el data object del shell). `addedAt` por archivo (guardado en `TrayFiles` como
+  `ruta\x1Fsegundos`); `FileTrayPrune()` cada minuto quita los de >24 h o que ya no existen.
+
 ### Clics en la isla
 - Clic en el notch recogido → se despliega (como hover).
 - Desplegado: solo la portada/título abre la app que suena.
@@ -126,7 +143,9 @@ El archivo usa finales de línea CRLF.
 
 - Compila sin errores con el clang de Windhawk (`-fsyntax-only -Wall`), pero nada de lo añadido
   se ha probado aún en el equipo real.
-- Linear (proyecto UI'NT): FSA-5..8 y FSA-84..90 en Done (2026-10-22); el historial de cada
-  cambio está en sus descripciones y comentarios.
+- Linear (proyecto UI'NT): FSA-5..8 y FSA-84..90 en Done (2026-10-22); FSA-115..121 en In Review
+  (2026-10-28, sin probar en el equipo). El historial de cada cambio está en sus descripciones y comentarios.
+- Además de `-fsyntax-only`, se puede compilar y enlazar una DLL de prueba añadiendo `-shared -O2`,
+  `"/c/Program Files/Windhawk/Engine/<versión>/64/windhawk.lib"` y las librerías de `@compilerOptions`.
 - Glifos de Segoe Fluent Icons elegidos de memoria; alguno puede salir distinto.
 - Posible duplicado de pastilla si el mod original sigue activo junto al fork (desactivarlo).

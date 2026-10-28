@@ -34,6 +34,11 @@ Himanshu (devcode90). Todo lo del original sigue funcionando. Este fork añade l
 
 Si tienes instalado el mod original (*Dynamic Island for Windows*), desactívalo para que no salgan dos islas.
 
+### Fuente
+
+UIN'T usa [Inter](https://rsms.me/inter/). Instálala en Windows (descarga el zip, abre los `.ttf` y pulsa
+**Instalar**). Después reinicia el mod. Si no está instalada, se usa Segoe UI.
+
 ### Para que las notificaciones funcionen
 
 Activa **Configuración → Privacidad y seguridad → Notificaciones → "Permitir que las aplicaciones accedan a las
