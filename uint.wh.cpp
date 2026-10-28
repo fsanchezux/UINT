@@ -288,7 +288,7 @@ We love community contributions! To ensure high-quality updates, please follow t
       - system: System (Device Accent)
   - CustomAccentHex: "#F62B0A"
     $name: Custom accent hex
-    $description: The island's accent colour when the accent mode is Custom. Default #F62B0A.
+    $description: "The island's accent colour when the accent mode is Custom. Default #F62B0A."
   - SecondaryAccentHex: "#FF9A44"
     $name: Color de acento secundario
     $description: 'Color de la barra superior, el centro de control, el editor de notas y la nota fijada: avisos (Bloq Mayús, copiado…), interruptores activos y la app que tienes delante. Por defecto #FF9A44. Con el modo de acento "System" se usa el acento de Windows.'
@@ -303,7 +303,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: Display the soft accent circle/glow behind the time in the expanded clock view. Turn off for a clean, minimal clock without background glow.
   - FontFamily: ""
     $name: Font family
-    $description: Custom font family for all text (island, top bar, panels, notes). Leave empty to use Inter: if it is not installed, the mod downloads it from the UIN'T repo and installs it for your user (no admin rights). Until then, or without internet, Segoe UI is used.
+    $description: "Custom font family for all text (island, top bar, panels, notes). Leave empty to use Inter: if it is not installed, the mod downloads it from the UIN'T repo and installs it for your user (no admin rights). Until then, or without internet, Segoe UI is used."
   - ContourBorderMode: default
     $name: Contour border
     $description: Choose the island's border style. Default uses the theme's matching border, Auto extracts the border color from album art, and Borderless removes all outer border outlines.
