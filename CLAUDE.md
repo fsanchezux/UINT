@@ -122,6 +122,10 @@ El archivo usa finales de línea CRLF.
   es el acento de barra superior, centro de control, editor de notas y nota fijada (antes el acento de Windows).
 - **Forma**: notch por defecto (también con `ShapeStyle` vacío), radio inferior `kNotchRadius` = 14.
 - **Fuente**: `FontFamily` vacío → `InstalledInterFamily()` (Inter / Inter Variable si están instaladas).
+  Si falta, `FontThreadProc` → `InstallInterForUser()` la baja de `raw.githubusercontent.com/fsanchezux/UINT/main/
+  fonts/InterVariable.ttf` (en el repo, con `fonts/LICENSE-Inter.txt`), la copia a
+  `%LOCALAPPDATA%\Microsoft\Windows\Fonts`, la registra en HKCU (`...\CurrentVersion\Fonts`) y avisa al hilo de
+  render con `WM_APP_FONT_INSTALLED`.
 - **Centro de control**: 4 atajos abajo en 2×2 (Energía, Segundo plano, Notificaciones = Win+N, Ajustes);
   `kCcHeight` 462. La fila de modo avión dibuja su círculo como las otras (su hit es toda la fila).
 - **Pomodoro**: `kPomoYellow`, `DrawPomoRing()`. Pastilla recogida (idle) = anillo a la izquierda

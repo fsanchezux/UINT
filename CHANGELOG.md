@@ -5,7 +5,8 @@
 - Nueva paleta UIN'T por defecto: fondo #170312 en la isla, la barra y los paneles; acento #F62B0A en la isla
   y acento secundario #FF9A44 (ajuste nuevo) en la barra superior, el centro de control y las notas.
 - La isla va pegada al borde superior (forma notch por defecto) y con las esquinas menos redondeadas.
-- Fuente Inter en toda la interfaz cuando está instalada.
+- Fuente Inter en toda la interfaz. Si no está instalada, el mod la descarga del repo y la instala solo para
+  el usuario (sin permisos de administrador).
 - Notas: el botón de nueva nota es un círculo con el icono "+".
 - Centro de control: el icono del modo avión ya no sale descentrado, y hay un botón nuevo de Notificaciones
   que abre las de Windows.

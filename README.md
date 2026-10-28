@@ -36,8 +36,13 @@ Si tienes instalado el mod original (*Dynamic Island for Windows*), desactívalo
 
 ### Fuente
 
-UIN'T usa [Inter](https://rsms.me/inter/). Instálala en Windows (descarga el zip, abre los `.ttf` y pulsa
-**Instalar**). Después reinicia el mod. Si no está instalada, se usa Segoe UI.
+UIN'T usa [Inter](https://rsms.me/inter/) y la instala solo: si no la tienes, la primera vez que arranca la descarga
+de [`fonts/InterVariable.ttf`](fonts/InterVariable.ttf) y la instala solo para tu usuario, sin permisos de
+administrador. Mientras tanto, o sin internet, se usa Segoe UI. Si pones otra fuente en el ajuste *Font family*, no
+se descarga nada.
+
+Inter es de The Inter Project Authors y se distribuye con la SIL Open Font License
+([`fonts/LICENSE-Inter.txt`](fonts/LICENSE-Inter.txt)).
 
 ### Para que las notificaciones funcionen
 

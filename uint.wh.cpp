@@ -303,7 +303,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: Display the soft accent circle/glow behind the time in the expanded clock view. Turn off for a clean, minimal clock without background glow.
   - FontFamily: ""
     $name: Font family
-    $description: Custom font family for all text (island, top bar, panels, notes). Leave empty to use Inter (install it from https://rsms.me/inter/), or Segoe UI if Inter is not installed.
+    $description: Custom font family for all text (island, top bar, panels, notes). Leave empty to use Inter: if it is not installed, the mod downloads it from the UIN'T repo and installs it for your user (no admin rights). Until then, or without internet, Segoe UI is used.
   - ContourBorderMode: default
     $name: Contour border
     $description: Choose the island's border style. Default uses the theme's matching border, Auto extracts the border color from album art, and Borderless removes all outer border outlines.
@@ -608,6 +608,7 @@ constexpr UINT WM_APP_MOUSE_WAKE = WM_APP + 0x446;
 // thread, so hotkey and backdrop changes are posted across and applied there.
 constexpr UINT WM_APP_APPLY_HOTKEY = WM_APP + 0x447;
 constexpr UINT WM_APP_APPLY_BACKDROP = WM_APP + 0x448;
+constexpr UINT WM_APP_FONT_INSTALLED = WM_APP + 0x449;  // Inter was just installed; rebuild the text
 constexpr int ID_HIDE_SHOW_HOTKEY = 1;
 constexpr float kRenderPadX = 28.0f;
 constexpr float kRenderPadY = 22.0f;
@@ -1343,6 +1344,7 @@ HANDLE g_audioThread = nullptr;
 HANDLE g_weatherThread = nullptr;
 HANDLE g_notificationThread = nullptr;
 HANDLE g_bluetoothThread = nullptr;
+HANDLE g_fontThread = nullptr;
 std::atomic<bool> g_running = false;
 std::atomic<int> g_idleTab = 0;
 std::atomic<bool> g_layoutDirty = true;
@@ -2172,6 +2174,124 @@ std::wstring InstalledInterFamily() {
         }
     }
     return L"";
+}
+
+// Inter ships in the repo (fonts/InterVariable.ttf, SIL Open Font License).
+// When it is missing, the mod installs it for the current user only -- what
+// "Install for me" does in Explorer, no admin rights needed -- downloading it
+// from the repo's main branch.
+constexpr wchar_t kInterHost[] = L"raw.githubusercontent.com";
+constexpr wchar_t kInterPath[] = L"/fsanchezux/UINT/main/fonts/InterVariable.ttf";
+constexpr wchar_t kInterRegistryName[] = L"Inter Variable (TrueType)";
+
+// A whole HTTPS response as bytes, or false unless the server answered 200.
+bool DownloadBytes(const wchar_t* host, const wchar_t* path, std::string* out) {
+    constexpr size_t kMaxBytes = 8 * 1024 * 1024;
+    out->clear();
+    bool ok = false;
+    HINTERNET session = WinHttpOpen(L"UINT/1.1", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME,
+                                    WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!session) return false;
+    WinHttpSetTimeouts(session, 10000, 10000, 10000, 20000);
+    if (HINTERNET connect = WinHttpConnect(session, host, INTERNET_DEFAULT_HTTPS_PORT, 0)) {
+        if (HINTERNET request = WinHttpOpenRequest(connect, L"GET", path, nullptr, WINHTTP_NO_REFERER,
+                                                   WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE)) {
+            DWORD status = 0;
+            DWORD statusSize = sizeof(status);
+            if (WinHttpSendRequest(request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0) &&
+                WinHttpReceiveResponse(request, nullptr) &&
+                WinHttpQueryHeaders(request, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                                    WINHTTP_HEADER_NAME_BY_INDEX, &status, &statusSize, WINHTTP_NO_HEADER_INDEX) &&
+                status == 200) {
+                ok = true;
+                DWORD available = 0;
+                while (WinHttpQueryDataAvailable(request, &available) && available > 0) {
+                    const size_t start = out->size();
+                    if (start + available > kMaxBytes) {
+                        ok = false;
+                        break;
+                    }
+                    out->resize(start + available);
+                    DWORD read = 0;
+                    if (!WinHttpReadData(request, out->data() + start, available, &read)) {
+                        ok = false;
+                        break;
+                    }
+                    out->resize(start + read);
+                }
+            }
+            WinHttpCloseHandle(request);
+        }
+        WinHttpCloseHandle(connect);
+    }
+    WinHttpCloseHandle(session);
+    return ok;
+}
+
+// A TrueType or OpenType file, not an error page that came back instead.
+bool LooksLikeFontFile(const std::string& data) {
+    if (data.size() < 64 * 1024) return false;
+    return data.compare(0, 4, std::string("\x00\x01\x00\x00", 4)) == 0 || data.compare(0, 4, "OTTO") == 0 ||
+           data.compare(0, 4, "true") == 0;
+}
+
+// Installs Inter for the current user when it is not installed. Returns true
+// when it was installed now and is usable.
+bool InstallInterForUser() {
+    if (!InstalledInterFamily().empty()) return false;
+
+    wchar_t dir[MAX_PATH] = {};
+    if (!ExpandEnvironmentStringsW(L"%LOCALAPPDATA%\\Microsoft\\Windows\\Fonts", dir, ARRAYSIZE(dir))) return false;
+    CreateDirectoryW(dir, nullptr);  // usually there already
+    const std::wstring path = std::wstring(dir) + L"\\InterVariable.ttf";
+
+    // A copy left by an earlier attempt is reused as long as it is a real font.
+    std::string data;
+    bool haveFile = false;
+    if (HANDLE file = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+        file != INVALID_HANDLE_VALUE) {
+        char head[4] = {};
+        DWORD read = 0;
+        LARGE_INTEGER size = {};
+        if (ReadFile(file, head, sizeof(head), &read, nullptr) && read == sizeof(head) &&
+            GetFileSizeEx(file, &size) && size.QuadPart >= 64 * 1024) {
+            data.assign(head, sizeof(head));
+            data.resize(64 * 1024);  // LooksLikeFontFile only reads the signature and the size
+            haveFile = LooksLikeFontFile(data);
+        }
+        CloseHandle(file);
+    }
+    if (!haveFile) {
+        if (!DownloadBytes(kInterHost, kInterPath, &data) || !LooksLikeFontFile(data)) {
+            Wh_Log(L"Inter: download failed; keeping the default font");
+            return false;
+        }
+        const std::wstring temp = path + L".download";
+        HANDLE file = CreateFileW(temp.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (file == INVALID_HANDLE_VALUE) return false;
+        DWORD written = 0;
+        const bool wrote = WriteFile(file, data.data(), static_cast<DWORD>(data.size()), &written, nullptr) &&
+                           written == data.size();
+        CloseHandle(file);
+        if (!wrote || !MoveFileExW(temp.c_str(), path.c_str(), MOVEFILE_REPLACE_EXISTING)) {
+            DeleteFileW(temp.c_str());
+            return false;
+        }
+    }
+
+    // Registered under HKCU like a per-user install, so it stays after a restart.
+    HKEY key = nullptr;
+    if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, nullptr, 0,
+                        KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
+        RegSetValueExW(key, kInterRegistryName, 0, REG_SZ, reinterpret_cast<const BYTE*>(path.c_str()),
+                       static_cast<DWORD>((path.size() + 1) * sizeof(wchar_t)));
+        RegCloseKey(key);
+    }
+    AddFontResourceW(path.c_str());
+    SendMessageTimeoutW(HWND_BROADCAST, WM_FONTCHANGE, 0, 0, SMTO_ABORTIFHUNG, 1000, nullptr);
+    const bool usable = !InstalledInterFamily().empty();
+    Wh_Log(L"Inter: installed for the current user (usable now: %d)", usable ? 1 : 0);
+    return usable;
 }
 
 void ApplyHideShowHotkey();                 // forward declaration; defined after LoadSettings()
@@ -16043,6 +16163,22 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             ApplyHideShowHotkey();
             return 0;
 
+        case WM_APP_FONT_INSTALLED:
+            // The island and the top bar notice the new family on their own;
+            // the Control Center and the sticky note build their formats once.
+            LoadSettings();
+            g_ccTitleFmt.Reset();
+            g_ccSubFmt.Reset();
+            g_ccCenterFmt.Reset();
+            g_ccIconFmt.Reset();
+            g_ccSmallIconFmt.Reset();
+            g_stickyFmt.Reset();
+            g_ccRt.Reset();
+            g_layoutDirty = true;
+            TopBarInvalidate();
+            StickyUpdate(true);
+            return 0;
+
         case WM_APP_APPLY_BACKDROP: {
             ApplyBackdropMaterial(hwnd);
             RECT rc{};
@@ -17700,6 +17836,19 @@ DWORD WINAPI RenderThreadProc(void*) {
 
 
 
+// Installs Inter in the background when the font setting is left empty and
+// Inter is missing, then has the render thread pick it up.
+DWORD WINAPI FontThreadProc(void*) {
+    if (!GetStringSettingWithFallback(L"Themes.FontFamily", L"Appearance.FontFamily").empty()) return 0;
+    if (!InstallInterForUser()) return 0;
+    // The window may still be on its way; wait for it, or for the mod to stop.
+    for (int i = 0; i < 150 && !g_hwnd; ++i) {
+        if (WaitForSingleObject(g_stopEvent, 200) == WAIT_OBJECT_0) return 0;
+    }
+    if (g_hwnd) PostMessageW(g_hwnd, WM_APP_FONT_INSTALLED, 0, 0);
+    return 0;
+}
+
 bool StartThreads() {
     g_stopEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     g_settingsChangedEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -17722,6 +17871,7 @@ bool StartThreads() {
     g_notificationThread = CreateThread(nullptr, 0, NotificationThreadProc, nullptr, 0, nullptr);
 #endif
     g_bluetoothThread = CreateThread(nullptr, 0, BluetoothThreadProc, nullptr, 0, nullptr);
+    g_fontThread = CreateThread(nullptr, 0, FontThreadProc, nullptr, 0, nullptr);
     SubscribeDndNotification();
 
     return true;
@@ -17739,7 +17889,7 @@ void StopThreads() {
         SetEvent(g_stopEvent);
     }
 
-    HANDLE handles[] = {g_renderThread, g_mediaThread, g_audioThread, g_weatherThread, g_notificationThread, g_keyboardThread, g_mouseThread, g_bluetoothThread};
+    HANDLE handles[] = {g_renderThread, g_mediaThread, g_audioThread, g_weatherThread, g_notificationThread, g_keyboardThread, g_mouseThread, g_bluetoothThread, g_fontThread};
     for (HANDLE handle : handles) {
         if (handle) {
             WaitForSingleObject(handle, 3000);
@@ -17757,6 +17907,7 @@ void StopThreads() {
     g_mouseThread = nullptr;
     g_mouseThreadId = 0;
     g_bluetoothThread = nullptr;
+    g_fontThread = nullptr;
 
     if (g_stopEvent) {
         CloseHandle(g_stopEvent);
