@@ -1,10 +1,10 @@
 // ==WindhawkMod==
-// @id              dynamic-island-for-windows-fork
-// @name            Dynamic Island for Windows - Fork
-// @description     A living, breathing pill overlay inspired by iPhone's Dynamic Island. Reacts to media, downloads, clipboard, battery, and more.
-// @version         1.3.1
-// @author          Himanshu
-// @github          https://github.com/devcode90
+// @id              uint
+// @name            UIN'T
+// @description     Dynamic Island for Windows fork with a top bar for maximized windows, a macOS-style control center, notes, pomodoro and more.
+// @version         1.0.0
+// @author          fsanchezux
+// @github          https://github.com/fsanchezux
 // @include         windhawk.exe
 // @compilerOptions -lole32 -loleaut32 -lshcore -ld2d1 -ldwrite -ldwmapi -lgdi32 -luser32 -lshell32 -lruntimeobject -lwindowscodecs -lavrt -lsetupapi -lwinhttp -lpdh -lwinmm
 // @license         MIT
@@ -12,6 +12,16 @@
 
 // ==WindhawkModReadme==
 /*
+# UIN'T
+
+Fork of [Dynamic Island for Windows](https://github.com/devcode90/Dynamic-Island-for-Windows) by Himanshu (devcode90), MIT license. Source and issues: [fsanchezux/UINT](https://github.com/fsanchezux/UINT).
+
+What this fork adds on top of the original:
+- **Top bar for maximized windows:** when a window is maximized, the pill turns into a full-width bar (registered as an AppBar) with your recent apps, the clock, quick alerts and shortcuts to the cards.
+- **macOS-style control center:** Wi-Fi, Bluetooth, brightness (DDC/CI), volume and media in one panel, plus Wi-Fi and Bluetooth lists.
+- **Cards:** notes (with a pinned sticky note), dropped files, pomodoro and a widgets card to turn cards on or off. The time card cycles through clock, calendar and weather.
+- **Focus follows mouse** and a **custom palette** setting.
+
 # Dynamic Island for Windows
 
 A fluid, living overlay inspired by Apple's Dynamic Island, bringing a beautiful, highly-responsive UI to your Windows desktop. Built natively with hardware-accelerated Direct2D rendering for a buttery-smooth 60 FPS experience.
@@ -69,11 +79,13 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 ## 📝 Feedback & Credits
 
 ### Feedback / Support / Bug Reports
-- Please use [Windhawk Mods Issues](https://github.com/ramensoftware/windhawk-mods/issues) or [dynamic-island-for-windows issues](https://github.com/devcode90/dynamic-island-for-windows/issues) to report bugs, request features, or share feedback.
+- For this fork, please use [UIN'T issues](https://github.com/fsanchezux/UINT/issues). For the original mod, use [Windhawk Mods Issues](https://github.com/ramensoftware/windhawk-mods/issues) or [dynamic-island-for-windows issues](https://github.com/devcode90/dynamic-island-for-windows/issues).
 - Clear descriptions, screenshots, or steps to reproduce help improve fixes and updates.
 - Suggestions for UI/UX or new integrations are always welcome.
 
 ### Credits
+- **[Himanshu (devcode90) @GitHub](https://github.com/devcode90)**: Original author of Dynamic Island for Windows.
+- **[fsanchezux @GitHub](https://github.com/fsanchezux)**: UIN'T fork: top bar for maximized windows, control center, notes, pomodoro, widgets card, focus follows mouse and custom palette.
 - **[Sarthak Singh (sarthakaksh) @GitHub](https://github.com/sarthakaksh)**: Major feature overhaul including the right-click focus timer, hover clock, robust media controls, zero-CPU instant hide shortcut, Bluetooth battery integration, image clipboard thumbnails, and full-screen autohide fixes.
 - **[ciizerr @GitHub](https://github.com/ciizerr)**: Improved the UI by refining layout alignment, fixing dashboard scaling, and enhancing calendar and weather module integration.
 - **[ChrisSch-dev @GitHub](https://github.com/ChrisSch-dev)**: Added album title support, word wrapping for weather descriptions, sleep resume fixes, and various performance/movement stability improvements.
@@ -172,6 +184,18 @@ We love community contributions! To ensure high-quality updates, please follow t
   - UnhideOnHover: true
     $name: Unhide on hover
     $description: Allow the hidden island to reappear when you hover your mouse over it.
+  - FocusFollowsMouse: true
+    $name: Foco al pasar el ratón
+    $description: Como en Omarchy/Hyprland, la ventana que queda bajo el ratón pasa a ser la activa sin hacer clic, así que puedes escribir en ella directamente (por ejemplo, al cambiar de pantalla). Usa la función de Windows "activar una ventana al pasar el ratón por encima" mientras el mod está cargado y deja tu ajuste anterior al desactivarlo.
+  - FocusFollowsMouseRaise: false
+    $name: Traer al frente la ventana con foco
+    $description: Con "Foco al pasar el ratón", además sube la ventana bajo el ratón por encima de las demás. Desactivado mantiene el orden de las ventanas.
+  - FocusFollowsMouseDelay: 150
+    $name: Retardo del foco (ms)
+    $description: Tiempo que el ratón tiene que quedarse sobre una ventana para que reciba el foco (0 a 2000).
+  - MaximizedTopBarHeight: 26
+    $name: Top bar height
+    $description: Height of the top bar in pixels at 100% scaling (20 to 80). Default 26.
   $name: Behavior & Visibility
 - Animations:
   - TargetFPS: auto
@@ -220,6 +244,9 @@ We love community contributions! To ensure high-quality updates, please follow t
       - plum: Plum - muted mauve
       - porcelain: Porcelain - light theme
       - custom: Custom Colors (Use Hex Below)
+  - CustomPalette: ""
+    $name: Paleta propia (hex)
+    $description: 'Tu combinación de colores en hexadecimal, separados por comas: fondo, texto, texto secundario, acento, borde. Por ejemplo "#1E1E2E, #CDD6F4, #A6ADC8, #F5C2E7, #313244". Puedes poner solo los primeros (por ejemplo fondo y texto). Si está rellena manda sobre el preset y los colores sueltos de abajo, en la isla, la barra superior y los paneles. Vacía para no usarla.'
   - PillOpacity: 96
     $name: Pill transparency
     $description: 35 to 100. Lower values make the island more see-through.
@@ -351,8 +378,8 @@ We love community contributions! To ensure high-quality updates, please follow t
     $name: Notifications respect Do Not Disturb
     $description: Suppresses Dynamic Island notification alerts when Windows Do Not Disturb is active.
   - HardwareMonitorModule: true
-    $name: Include Hardware Monitor in scroll loop
-    $description: Add CPU, GPU, RAM, FPS and Network stats card to mouse-wheel scroll loop.
+    $name: Include Control Center in scroll loop
+    $description: Adds a Control Center card to the mouse-wheel scroll loop. Clicking it drops the Control Center panel (network, Bluetooth, Do Not Disturb, brightness, volume, media, background processes) down from the notch.
   - GameOverlay: false
     $name: Enable game overlay mode
     $description: Replaces the clock with live stats like FPS, CPU, and RAM usage.
@@ -407,6 +434,24 @@ We love community contributions! To ensure high-quality updates, please follow t
   - FileTrayMaxItems: 10
     $name: File Tray capacity
     $description: 1 to 25. How many files the shelf keeps before the oldest one drops off.
+  - ClockTab: true
+    $name: Clock card while media plays
+    $description: Adds a clock card to the notch while something is playing (when idle, the first card is already the clock).
+  - CalendarTab: true
+    $name: Calendar card
+    $description: Shows the calendar card in the notch.
+  - NotesModule: true
+    $name: Notes
+    $description: A Notes card in the notch to add, edit, delete and pin notes. A pinned note sits on the right of the screen, and in the top bar as a chip you can click.
+  - PomodoroModule: true
+    $name: Pomodoro
+    $description: A Pomodoro card in the notch. While it runs, the collapsed pill shows a progress bar and the top bar shows the time left; a notification appears when a session ends.
+  - PomodoroFocusMinutes: 25
+    $name: Pomodoro focus minutes
+    $description: Length of a focus session (1 to 180).
+  - PomodoroBreakMinutes: 5
+    $name: Pomodoro break minutes
+    $description: Length of a break (1 to 180).
   - MediaExpandBlocklist: ""
     $name: Never auto-expand for these apps
     $description: 'Comma-separated list of app or site names that should never make the island expand on a track change, while still updating quietly in the collapsed pill. Matched loosely against the media source and title, for example: chrome, tiktok, youtube.'
@@ -462,6 +507,7 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <unknwn.h>
 #include <dwmapi.h>
 #include <shellapi.h>
+#include <shlobj.h>
 #include <setupapi.h>
 #include <devpropdef.h>
 #include <dbt.h>
@@ -526,6 +572,23 @@ We love community contributions! To ensure high-quality updates, please follow t
 #define DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER 0
 #endif
 
+#if __has_include(<winrt/Windows.Devices.Radios.h>)
+#define DYNAMIC_ISLAND_HAS_RADIOS 1
+#include <winrt/Windows.Devices.Radios.h>
+#else
+#define DYNAMIC_ISLAND_HAS_RADIOS 0
+#endif
+// Wi-Fi network list for the bar's own network panel. wlanapi.dll is loaded at
+// run time, so only the header is needed here.
+#if __has_include(<wlanapi.h>)
+#define DYNAMIC_ISLAND_HAS_WLAN 1
+#include <wlanapi.h>
+#else
+#define DYNAMIC_ISLAND_HAS_WLAN 0
+#endif
+#include <netlistmgr.h>
+#include <initializer_list>
+
 using Microsoft::WRL::ComPtr;
 using namespace std::chrono_literals;
 
@@ -589,22 +652,6 @@ namespace MediaLayout {
     // expandedAlpha = clamp((contentHeight - 60) / 60), so anything at or below
     // this height is still the collapsed pill and must not be hit-tested.
     constexpr float kExpandedMinHeight = 60.0f;
-}
-
-// Layout for the File Tray card (#33). Shared by DrawFileTrayDashboard and the
-// row hit test in OverlayWndProc for the same reason MediaLayout is shared.
-namespace FileTrayLayout {
-    constexpr float kPadX = 26.0f;
-    constexpr float kListTop = 46.0f;
-    constexpr float kListBottomInset = 16.0f;
-    constexpr float kRowHeight = 30.0f;
-    constexpr float kRowGap = 6.0f;
-
-    constexpr int VisibleRowCapacity(float contentHeight) {
-        const float span = contentHeight - kListBottomInset - kListTop + kRowGap;
-        const int capacity = static_cast<int>(span / (kRowHeight + kRowGap));
-        return capacity < 1 ? 1 : capacity;
-    }
 }
 
 // Layout for the collapsed idle strip (the clock, and optionally a weather
@@ -948,6 +995,17 @@ struct Settings {
     int autoHideIdleSeconds = 0;
     bool autoHideFullscreen = true;
     bool borderMergedMode = false;
+    bool maximizedTopBar = true;     // turn into a full-width top bar while a window is maximized
+    bool clockTab = true;            // clock card while media plays
+    bool calendarTab = true;
+    bool notesModule = true;
+    bool pomodoroModule = true;
+    int pomodoroFocusMinutes = 25;
+    int pomodoroBreakMinutes = 5;
+    int maximizedTopBarHeight = 26;  // logical pixels at 96 DPI
+    bool focusFollowsMouse = true;       // activate the window under the mouse
+    bool focusFollowsMouseRaise = false;
+    int focusFollowsMouseDelay = 150;    // ms
     bool unhideOnHover = true;
     bool alwaysOnTop = true;
     bool expandOnHover = true;
@@ -1261,7 +1319,6 @@ std::atomic<bool> g_layoutDirty = true;
 std::atomic<bool> g_clickExpanded = false;
 std::atomic<int> g_pressedMediaButton = -1;
 std::atomic<int> g_hoveredMediaButton = -1;
-std::atomic<int> g_hoveredFileTrayRow = -1;  // row index under the cursor on the File Tray card
 std::atomic<bool> g_scrubbing = false;           // true while press-dragging the media timeline scrubber
 std::atomic<float> g_scrubDragFraction = 0.0f;   // live 0..1 drag position while g_scrubbing is true
 std::atomic<double> g_lastLiveSeekTime = 0.0;    // throttle gate for live seeks while dragging
@@ -1320,37 +1377,136 @@ int ClampInt(int v, int lo, int hi) {
 // renderer, the scroll handler and the hit tests can all share this. That
 // arithmetic used to be copy-pasted in seven places, which is exactly how they
 // drifted out of sync.
+// Cards are identified by kind, not by position, so the selected one stays
+// selected when cards are switched on or off, when the island collapses and
+// across restarts. g_idleTab holds the selected TabId.
+//
+// The first card depends on context -- the media card while something plays,
+// the clock when idle -- so the clock card only appears on its own while media
+// plays. g_tabsMediaMode is set by whichever expanded surface painted last.
+enum TabId {
+    kTabPrimary = 0,
+    kTabClock,
+    kTabCalendar,
+    kTabWeather,
+    kTabControl,
+    kTabFileTray,
+    kTabNotes,
+    kTabPomodoro,
+    kTabWidgets,
+};
+
+std::atomic<bool> g_tabsMediaMode = false;
+
+struct WidgetDef {
+    const wchar_t* key;
+    const wchar_t* label;
+    const wchar_t* glyph;
+    bool Settings::*field;
+};
+const WidgetDef kWidgetDefs[] = {
+    {L"Widget.Clock", L"Hora", L"\uE823", &Settings::clockTab},
+    {L"Widget.Calendar", L"Calendario", L"\uE787", &Settings::calendarTab},
+    {L"Widget.Weather", L"Tiempo", L"\uE753", &Settings::weather},
+    {L"Widget.ControlCenter", L"Centro de control", L"\uE9E9", &Settings::hardwareMonitorModule},
+    {L"Widget.Notes", L"Notas", L"\uE70B", &Settings::notesModule},
+    {L"Widget.Pomodoro", L"Pomodoro", L"\uE916", &Settings::pomodoroModule},
+};
+
+// The clock, the calendar and the weather share one card (the time card: the
+// first card when idle, the clock card while media plays), and a click on it
+// moves to the next of them. Notes and the files dropped on the island share
+// the notes card as one list. kTabCalendar, kTabWeather and kTabFileTray stay
+// in the enum for the top bar's shortcuts and for old saved selections, but are
+// never in the order themselves.
+std::vector<int> TabOrder(const Settings& settings, bool mediaMode) {
+    std::vector<int> order = {kTabPrimary};
+    if (mediaMode && (settings.clockTab || settings.calendarTab || settings.weather)) order.push_back(kTabClock);
+    if (settings.hardwareMonitorModule) order.push_back(kTabControl);
+    if (settings.notesModule || settings.fileTrayModule) order.push_back(kTabNotes);
+    if (settings.pomodoroModule) order.push_back(kTabPomodoro);
+    order.push_back(kTabWidgets);  // always there, so cards can be switched back on
+    return order;
+}
+
+enum TimeView { kTimeViewClock, kTimeViewCalendar, kTimeViewWeather };
+std::atomic<int> g_timeCardView = kTimeViewClock;
+
+// The card the time views share for the context last painted.
+int TimeCardTab() {
+    return g_tabsMediaMode.load(std::memory_order_relaxed) ? kTabClock : kTabPrimary;
+}
+
+// Views the time card rotates through. Idle, the clock is always there since
+// it is the first card.
+std::vector<int> TimeCardViews(const Settings& settings) {
+    std::vector<int> views;
+    if (!g_tabsMediaMode.load(std::memory_order_relaxed) || settings.clockTab) views.push_back(kTimeViewClock);
+    if (settings.calendarTab) views.push_back(kTimeViewCalendar);
+    if (settings.weather) views.push_back(kTimeViewWeather);
+    if (views.empty()) views.push_back(kTimeViewClock);
+    return views;
+}
+
+int TimeCardView(const Settings& settings) {
+    const std::vector<int> views = TimeCardViews(settings);
+    const int view = g_timeCardView.load(std::memory_order_relaxed);
+    return std::find(views.begin(), views.end(), view) != views.end() ? view : views.front();
+}
+
+void SetTimeCardView(int view) {
+    g_timeCardView = view;
+    Wh_SetIntValue(L"TimeCardView", view);
+}
+
+void TimeCardNextView(const Settings& settings) {
+    const std::vector<int> views = TimeCardViews(settings);
+    const auto it = std::find(views.begin(), views.end(), TimeCardView(settings));
+    const size_t index = it == views.end() ? 0 : static_cast<size_t>(it - views.begin());
+    SetTimeCardView(views[(index + 1) % views.size()]);
+}
+
 int ActiveTabCount(const Settings& settings) {
-    int count = 2;  // primary (media or clock) + calendar
-    if (settings.weather) ++count;
-    if (settings.hardwareMonitorModule) ++count;
-    if (settings.fileTrayModule) ++count;
-    return count;
+    return static_cast<int>(TabOrder(settings, g_tabsMediaMode.load(std::memory_order_relaxed)).size());
+}
+
+int CurrentTabId(const Settings& settings) {
+    const bool mediaMode = g_tabsMediaMode.load(std::memory_order_relaxed);
+    const std::vector<int> order = TabOrder(settings, mediaMode);
+    int selected = g_idleTab.load(std::memory_order_relaxed);
+    if (!mediaMode && selected == kTabClock) {
+        selected = kTabPrimary;  // idle: the first card is the clock
+    }
+    return std::find(order.begin(), order.end(), selected) != order.end() ? selected : kTabPrimary;
+}
+
+int TabIndexOf(const Settings& settings, int id) {
+    const std::vector<int> order = TabOrder(settings, g_tabsMediaMode.load(std::memory_order_relaxed));
+    const auto it = std::find(order.begin(), order.end(), id);
+    return it == order.end() ? -1 : static_cast<int>(it - order.begin());
 }
 
 int NormalizedTabIndex(const Settings& settings) {
-    const int total = std::max(1, ActiveTabCount(settings));
-    const int raw = g_idleTab.load(std::memory_order_relaxed);
-    return ((raw % total) + total) % total;
+    return std::max(0, TabIndexOf(settings, CurrentTabId(settings)));
 }
 
-// Tab order is always: primary, calendar, weather?, hardware?, file tray?
-// The expensive GPU / network counters are only sampled while the hardware card
-// is actually on screen, so that check needs the card's real index rather than
-// assuming it is the last tab -- which stopped being true once the File Tray
-// was added after it.
 int HardwareMonitorTabIndex(const Settings& settings) {
-    if (!settings.hardwareMonitorModule) {
-        return -1;
-    }
-    return 2 + (settings.weather ? 1 : 0);
+    return TabIndexOf(settings, kTabControl);
 }
 
-int FileTrayTabIndex(const Settings& settings) {
-    if (!settings.fileTrayModule) {
-        return -1;
-    }
-    return 2 + (settings.weather ? 1 : 0) + (settings.hardwareMonitorModule ? 1 : 0);
+
+void SelectTab(int id) {
+    g_idleTab = id;
+    Wh_SetIntValue(L"SelectedTab", id);
+}
+
+void SelectTabOffset(const Settings& settings, int delta, bool wrap) {
+    const std::vector<int> order = TabOrder(settings, g_tabsMediaMode.load(std::memory_order_relaxed));
+    const int n = static_cast<int>(order.size());
+    if (n <= 1) return;
+    int index = NormalizedTabIndex(settings) + delta;
+    index = wrap ? ((index % n) + n) % n : ClampInt(index, 0, n - 1);
+    SelectTab(order[index]);
 }
 
 // ── Localization (#35) ───────────────────────────────────────────────────────
@@ -1641,36 +1797,6 @@ float MediaScrubFractionUnbounded(const MediaContentPoint& pt) {
     return Clamp((Clamp(pt.x, barLeft, barRight) - barLeft) / (barRight - barLeft), 0.0f, 1.0f);
 }
 
-// Index of the File Tray row under a content-space point, or -1. Rows are drawn
-// newest-first, so index 0 is the most recently dropped file.
-int FileTrayRowAtContentPoint(const MediaContentPoint& pt, int itemCount) {
-    if (!pt.valid || itemCount <= 0 || pt.height <= MediaLayout::kExpandedMinHeight) {
-        return -1;
-    }
-    if (pt.x < FileTrayLayout::kPadX || pt.x > pt.width - FileTrayLayout::kPadX) {
-        return -1;
-    }
-
-    const float listBottom = pt.height - FileTrayLayout::kListBottomInset;
-    if (pt.y < FileTrayLayout::kListTop || pt.y > listBottom) {
-        return -1;
-    }
-
-    const float stride = FileTrayLayout::kRowHeight + FileTrayLayout::kRowGap;
-    const int index = static_cast<int>((pt.y - FileTrayLayout::kListTop) / stride);
-    // Reject the gap between rows so hovering dead space highlights nothing.
-    const float rowTop = FileTrayLayout::kListTop + index * stride;
-    if (pt.y > rowTop + FileTrayLayout::kRowHeight) {
-        return -1;
-    }
-
-    const int capacity = FileTrayLayout::VisibleRowCapacity(pt.height);
-    if (index < 0 || index >= capacity || index >= itemCount) {
-        return -1;
-    }
-    return index;
-}
-
 // True when the point is over the expanded layout's album art.
 bool MediaArtHitTest(const MediaContentPoint& pt) {
     if (!pt.valid || pt.height <= MediaLayout::kExpandedMinHeight) {
@@ -1881,8 +2007,12 @@ D2D1_COLOR_F EnsureContrastAgainstBackground(D2D1_COLOR_F candidate, D2D1_COLOR_
     return candidate;
 }
 
+HMONITOR GetAnchorMonitor();  // defined next to GetAnchorWorkRect
+
 // Returns true if the currently active foreground window is in full screen mode
-bool IsForegroundFullscreen(HWND targetHwnd) {
+// on the given monitor. A full-screen app on some other monitor is ignored, so
+// a video playing on a second screen no longer hides the island.
+bool IsForegroundFullscreenOnMonitor(HWND targetHwnd, HMONITOR islandMonitor) {
     HWND fg = GetForegroundWindow();
     if (!fg || fg == targetHwnd || fg == GetDesktopWindow() || fg == GetShellWindow()) {
         return false;
@@ -1907,6 +2037,9 @@ bool IsForegroundFullscreen(HWND targetHwnd) {
     clientRect.bottom += pt.y;
 
     HMONITOR hMon = MonitorFromWindow(fg, MONITOR_DEFAULTTONEAREST);
+    if (islandMonitor && hMon != islandMonitor) {
+        return false;
+    }
     MONITORINFO mi = { sizeof(MONITORINFO) };
     if (GetMonitorInfoW(hMon, &mi)) {
         if (clientRect.left <= mi.rcMonitor.left &&
@@ -1918,6 +2051,10 @@ bool IsForegroundFullscreen(HWND targetHwnd) {
     }
 
     return false;
+}
+
+bool IsForegroundFullscreen(HWND targetHwnd) {
+    return IsForegroundFullscreenOnMonitor(targetHwnd, GetAnchorMonitor());
 }
 
 // Returns the DPI scale factor for the primary monitor (1.0 = 96 DPI = 100%)
@@ -1981,6 +2118,53 @@ void ApplyHideShowHotkey();                 // forward declaration; defined afte
 void ApplyBackdropMaterial(HWND);           // forward declaration; defined after LoadSettings()
 void ApplyBackdropRegion(HWND, int, int);   // forward declaration; defined below PositionOverlayWindow
 void NotifyKeyboardThreadSettingChanged();  // forward declaration; defined with the keyboard hook
+
+// ── Focus follows the mouse ──────────────────────────────────────────────────
+// Windows' own active window tracking (the Ease of Access "activate a window by
+// hovering over it"). It is switched on for this session only -- never written
+// to the profile -- and the user's previous values are put back when the
+// option is turned off or the mod unloads.
+struct FocusTrackingState {
+    bool saved = false;
+    BOOL tracking = FALSE;
+    BOOL raise = FALSE;
+    DWORD timeout = 0;
+};
+FocusTrackingState g_focusTrackingOriginal;
+
+void RestoreFocusFollowsMouse() {
+    if (!g_focusTrackingOriginal.saved) return;
+    SystemParametersInfoW(SPI_SETACTIVEWINDOWTRACKING, 0,
+                          reinterpret_cast<PVOID>(static_cast<INT_PTR>(g_focusTrackingOriginal.tracking)),
+                          SPIF_SENDCHANGE);
+    SystemParametersInfoW(SPI_SETACTIVEWNDTRKZORDER, 0,
+                          reinterpret_cast<PVOID>(static_cast<INT_PTR>(g_focusTrackingOriginal.raise)), SPIF_SENDCHANGE);
+    SystemParametersInfoW(SPI_SETACTIVEWNDTRKTIMEOUT, 0,
+                          reinterpret_cast<PVOID>(static_cast<UINT_PTR>(g_focusTrackingOriginal.timeout)),
+                          SPIF_SENDCHANGE);
+    g_focusTrackingOriginal.saved = false;
+}
+
+void ApplyFocusFollowsMouse() {
+    if (!g_settings.focusFollowsMouse) {
+        RestoreFocusFollowsMouse();
+        return;
+    }
+    if (!g_focusTrackingOriginal.saved) {
+        SystemParametersInfoW(SPI_GETACTIVEWINDOWTRACKING, 0, &g_focusTrackingOriginal.tracking, 0);
+        SystemParametersInfoW(SPI_GETACTIVEWNDTRKZORDER, 0, &g_focusTrackingOriginal.raise, 0);
+        SystemParametersInfoW(SPI_GETACTIVEWNDTRKTIMEOUT, 0, &g_focusTrackingOriginal.timeout, 0);
+        g_focusTrackingOriginal.saved = true;
+    }
+    SystemParametersInfoW(SPI_SETACTIVEWINDOWTRACKING, 0, reinterpret_cast<PVOID>(static_cast<INT_PTR>(TRUE)),
+                          SPIF_SENDCHANGE);
+    SystemParametersInfoW(SPI_SETACTIVEWNDTRKZORDER, 0,
+                          reinterpret_cast<PVOID>(static_cast<INT_PTR>(g_settings.focusFollowsMouseRaise ? TRUE : FALSE)),
+                          SPIF_SENDCHANGE);
+    SystemParametersInfoW(SPI_SETACTIVEWNDTRKTIMEOUT, 0,
+                          reinterpret_cast<PVOID>(static_cast<UINT_PTR>(g_settings.focusFollowsMouseDelay)),
+                          SPIF_SENDCHANGE);
+}
 
 void LoadSettings() {
     Settings next;
@@ -2159,6 +2343,16 @@ void LoadSettings() {
 
     // ── File tray (#33) ──────────────────────────────────────────────────────
     next.fileTrayModule = Wh_GetIntSetting(L"Modules.FileTrayModule") != 0;
+    next.clockTab = Wh_GetIntSetting(L"Modules.ClockTab") != 0;
+    next.calendarTab = Wh_GetIntSetting(L"Modules.CalendarTab") != 0;
+    next.notesModule = Wh_GetIntSetting(L"Modules.NotesModule") != 0;
+    next.pomodoroModule = Wh_GetIntSetting(L"Modules.PomodoroModule") != 0;
+    {
+        const int focus = Wh_GetIntSetting(L"Modules.PomodoroFocusMinutes");
+        const int rest = Wh_GetIntSetting(L"Modules.PomodoroBreakMinutes");
+        next.pomodoroFocusMinutes = focus <= 0 ? 25 : ClampInt(focus, 1, 180);
+        next.pomodoroBreakMinutes = rest <= 0 ? 5 : ClampInt(rest, 1, 180);
+    }
     next.fileTrayMaxItems = ClampInt(Wh_GetIntSetting(L"Modules.FileTrayMaxItems"), 1, 25);
 
     // ── Media auto-expand exclusions (#62) ───────────────────────────────────
@@ -2356,6 +2550,37 @@ void LoadSettings() {
         applyPreset(next, presetIdx);
     }
 
+    // Custom palette: up to five hex colours in one field -- background, text,
+    // secondary text, accent, border. When set it wins over the preset and the
+    // single colour fields, everywhere those colours are read.
+    {
+        const std::wstring palette = GetStringSettingCopy(L"Themes.CustomPalette");
+        std::vector<std::wstring> parts;
+        size_t start = 0;
+        while (start < palette.size()) {
+            const size_t end = palette.find_first_of(L",; ", start);
+            const std::wstring part = palette.substr(start, end == std::wstring::npos ? std::wstring::npos : end - start);
+            if (!part.empty()) parts.push_back(part);
+            if (end == std::wstring::npos) break;
+            start = end + 1;
+        }
+        const D2D1_COLOR_F unset = D2D1::ColorF(0.0f, 0.0f, 0.0f, 0.0f);
+        auto take = [&](size_t i, D2D1_COLOR_F* out) {
+            if (i >= parts.size()) return false;
+            const D2D1_COLOR_F c = ColorFromHex(parts[i], unset);
+            if (c.r == unset.r && c.g == unset.g && c.b == unset.b && c.a == unset.a) return false;
+            *out = c;
+            return true;
+        };
+        if (take(0, &next.pillBgColor)) {
+            next.themePreset = ThemePreset::Custom;
+            take(1, &next.textPrimaryColor);
+            take(2, &next.textSecondaryColor);
+            if (take(3, &next.customAccent)) next.accentMode = AccentMode::Custom;
+            take(4, &next.contourBorderColor);
+        }
+    }
+
     // Graphite inherits the old Fluent theme's auto-translucency: it is the
     // neutral Windows 11 grey, and it reads best when the desktop shows through
     // a little. The rest of the palettes are opaque unless the user says so.
@@ -2365,6 +2590,15 @@ void LoadSettings() {
 
     next.borderMergedMode = Wh_GetIntSetting(L"Appearance.BorderMergedMode") != 0;
     next.autoHideFullscreen = Wh_GetIntSetting(L"Behavior.AutoHideFullscreen") != 0;
+    // The top bar is part of the fork's design rather than an option.
+    next.maximizedTopBar = true;
+    next.focusFollowsMouse = Wh_GetIntSetting(L"Behavior.FocusFollowsMouse") != 0;
+    next.focusFollowsMouseRaise = Wh_GetIntSetting(L"Behavior.FocusFollowsMouseRaise") != 0;
+    next.focusFollowsMouseDelay = ClampInt(Wh_GetIntSetting(L"Behavior.FocusFollowsMouseDelay"), 0, 2000);
+    {
+        const int barHeight = Wh_GetIntSetting(L"Behavior.MaximizedTopBarHeight");
+        next.maximizedTopBarHeight = barHeight <= 0 ? 26 : ClampInt(barHeight, 20, 80);
+    }
     next.hardwareMonitorModule = Wh_GetIntSetting(L"Modules.HardwareMonitorModule") != 0;
     const std::wstring borderModeStr = GetStringSettingCopy(L"Themes.ContourBorderMode");
     if (EqualsNoCase(borderModeStr, L"borderless")) {
@@ -2429,6 +2663,13 @@ void LoadSettings() {
     // concurrently (settings thread vs. tray menu on the render thread); without
     // this, both could read the same "old" values and each decide a hotkey
     // re-registration was needed, or neither would.
+    for (const WidgetDef& widget : kWidgetDefs) {
+        const int value = Wh_GetIntValue(widget.key, -1);
+        if (value >= 0) {
+            next.*(widget.field) = value != 0;
+        }
+    }
+
     bool cityChanged = false;
     bool hotkeySettingChanged = false;
     bool backdropChanged = false;
@@ -2446,6 +2687,7 @@ void LoadSettings() {
             std::fabs(next.backdropTint - g_settings.backdropTint) > 0.001f;
         g_settings = std::move(next);
     }
+    ApplyFocusFollowsMouse();
     g_layoutDirty = true;
     if (cityChanged && g_settingsChangedEvent) {
         SetEvent(g_settingsChangedEvent);
@@ -2619,7 +2861,7 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData) {
     return TRUE;
 }
 
-RECT GetAnchorWorkRect() {
+HMONITOR GetAnchorMonitor() {
     HMONITOR selectedMonitor = nullptr;
 
     if (g_settings.targetMonitor == -1) {
@@ -2641,8 +2883,12 @@ RECT GetAnchorWorkRect() {
         selectedMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
     }
 
+    return selectedMonitor;
+}
+
+RECT GetAnchorWorkRect() {
     MONITORINFO mi = {sizeof(mi)};
-    GetMonitorInfoW(selectedMonitor, &mi);
+    GetMonitorInfoW(GetAnchorMonitor(), &mi);
     return mi.rcWork;
 }
 
@@ -2936,6 +3182,3913 @@ RECT GetIslandDockRect() {
         r.bottom = y + dockHeight;
     }
     return r;
+}
+
+void OpenRelevantApp();
+
+// ── Maximized top bar + Control Center ────────────────────────────────────────
+//
+// While a window is maximized on the island's monitor, the pill steps aside and
+// a full-width bar takes the top edge: the clock in the middle and, on the
+// right, the system status items (network, Bluetooth, volume, battery and the
+// Control Center). The bar is registered as an app bar (the mechanism the
+// taskbar uses), so Windows shrinks the work area and maximized windows sit
+// below it. Once no maximized window is left on that monitor, the bar is
+// unregistered and the pill comes back.
+//
+// The Control Center is a separate popup panel styled after macOS: network,
+// Bluetooth and airplane mode, Do Not Disturb, night light and casting tiles,
+// brightness and volume sliders, the playing media, and shortcuts to power
+// settings, background processes (Task Manager) and Settings. It opens from the
+// bar's right edge or drops down from the notch's Control Center tab.
+
+// ── Shared status (filled by a background worker) ────────────────────────────
+
+struct CcWifiNetwork {
+    std::wstring ssid;
+    std::wstring profile;  // saved profile, empty when Windows has never joined it
+    int signal = 0;        // 0..100
+    bool secured = false;
+    bool connected = false;
+    int bssType = 1;       // DOT11_BSS_TYPE, needed to connect by profile
+};
+
+struct CcBtDevice {
+    std::wstring name;
+    bool connected = false;
+};
+
+struct CcStatus {
+    bool wifiPresent = false;
+    bool wifiOn = false;
+    bool btPresent = false;
+    bool btOn = false;
+    bool netConnected = false;
+    std::wstring netName;
+    bool brightnessKnown = false;
+    bool brightnessSupported = false;
+    int brightness = 50;  // 0..100
+    // Lists for the bar's network and Bluetooth panels, filled only while one
+    // of them is open.
+    std::vector<CcWifiNetwork> wifiNetworks;
+    bool wifiListed = false;
+    bool wifiDenied = false;  // Windows 11 24H2+ gates the network list behind Location
+    std::vector<CcBtDevice> btDevices;
+    bool btListed = false;
+};
+
+std::mutex g_ccStatusMutex;
+CcStatus g_ccStatus;
+HANDLE g_ccWakeEvent = nullptr;
+HANDLE g_ccWorkerThread = nullptr;
+std::atomic<int> g_ccReqBrightness = -1;  // pending brightness to apply, -1 none
+std::atomic<int> g_ccReqWifi = -1;        // pending Wi-Fi state (0/1), -1 none
+std::atomic<int> g_ccReqBt = -1;          // pending Bluetooth state (0/1), -1 none
+std::atomic<bool> g_ccReadBrightness = false;
+std::atomic<HMONITOR> g_ccBrightnessMonitor = nullptr;
+std::atomic<ULONGLONG> g_ccTabSeenTick = 0;  // last time the notch tab was painted
+std::atomic<bool> g_ccPanelVisible = false;
+std::atomic<bool> g_ccNotchOpen = false;     // panel opened from the notch (keeps it expanded)
+std::atomic<bool> g_barModeActive = false;   // top bar is up; read by the render loop and the mouse hook
+std::atomic<bool> g_barDropdownOpen = false; // the island is dropped down below the bar
+std::atomic<bool> g_barDropdownFolding = false;  // ...and is folding back up into it
+HWND g_topBarHwnd = nullptr;
+
+// What the Control Center panel shows: the whole panel, or just the network or
+// Bluetooth section that the bar's status icons open.
+enum CcMode { kCcModeFull, kCcModeWifi, kCcModeBluetooth };
+std::atomic<int> g_ccMode = kCcModeFull;
+std::atomic<bool> g_ccReqScan = false;   // ask the Wi-Fi adapter for a fresh scan
+std::mutex g_ccReqMutex;
+std::wstring g_ccReqConnectProfile;      // profile to connect to, empty none
+int g_ccReqConnectBss = 1;
+
+CcStatus CcGetStatus() {
+    std::lock_guard lock(g_ccStatusMutex);
+    return g_ccStatus;
+}
+
+void CcWake() {
+    if (g_ccWakeEvent) {
+        SetEvent(g_ccWakeEvent);
+    }
+}
+
+// Sends a key chord (modifiers first, released in reverse order).
+void CcSendKeys(std::initializer_list<WORD> keys) {
+    std::vector<INPUT> inputs;
+    for (WORD vk : keys) {
+        INPUT in = {};
+        in.type = INPUT_KEYBOARD;
+        in.ki.wVk = vk;
+        inputs.push_back(in);
+    }
+    std::vector<WORD> reversed(keys.begin(), keys.end());
+    std::reverse(reversed.begin(), reversed.end());
+    for (WORD vk : reversed) {
+        INPUT in = {};
+        in.type = INPUT_KEYBOARD;
+        in.ki.wVk = vk;
+        in.ki.dwFlags = KEYEVENTF_KEYUP;
+        inputs.push_back(in);
+    }
+    SendInput(static_cast<UINT>(inputs.size()), inputs.data(), sizeof(INPUT));
+}
+
+void CcShellOpen(const wchar_t* target, const wchar_t* params = nullptr) {
+    SHELLEXECUTEINFOW sei = {sizeof(sei)};
+    sei.fMask = SEE_MASK_FLAG_NO_UI;
+    sei.lpFile = target;
+    sei.lpParameters = params;
+    sei.nShow = SW_SHOWNORMAL;
+    ShellExecuteExW(&sei);
+}
+
+// ── Brightness over DDC/CI (external monitors) ───────────────────────────────
+
+#pragma pack(push, 1)
+struct CcPhysicalMonitor {
+    HANDLE handle;
+    WCHAR description[128];
+};
+#pragma pack(pop)
+
+struct CcDxva2 {
+    using GetCount_t = BOOL(WINAPI*)(HMONITOR, LPDWORD);
+    using GetMonitors_t = BOOL(WINAPI*)(HMONITOR, DWORD, CcPhysicalMonitor*);
+    using Destroy_t = BOOL(WINAPI*)(DWORD, CcPhysicalMonitor*);
+    using GetBrightness_t = BOOL(WINAPI*)(HANDLE, LPDWORD, LPDWORD, LPDWORD);
+    using SetBrightness_t = BOOL(WINAPI*)(HANDLE, DWORD);
+    GetCount_t getCount = nullptr;
+    GetMonitors_t getMonitors = nullptr;
+    Destroy_t destroy = nullptr;
+    GetBrightness_t getBrightness = nullptr;
+    SetBrightness_t setBrightness = nullptr;
+
+    bool Load() {
+        if (getCount) {
+            return true;
+        }
+        HMODULE dll = LoadLibraryW(L"dxva2.dll");
+        if (!dll) {
+            return false;
+        }
+        getCount = reinterpret_cast<GetCount_t>(
+            reinterpret_cast<void*>(GetProcAddress(dll, "GetNumberOfPhysicalMonitorsFromHMONITOR")));
+        getMonitors = reinterpret_cast<GetMonitors_t>(
+            reinterpret_cast<void*>(GetProcAddress(dll, "GetPhysicalMonitorsFromHMONITOR")));
+        destroy = reinterpret_cast<Destroy_t>(
+            reinterpret_cast<void*>(GetProcAddress(dll, "DestroyPhysicalMonitors")));
+        getBrightness = reinterpret_cast<GetBrightness_t>(
+            reinterpret_cast<void*>(GetProcAddress(dll, "GetMonitorBrightness")));
+        setBrightness = reinterpret_cast<SetBrightness_t>(
+            reinterpret_cast<void*>(GetProcAddress(dll, "SetMonitorBrightness")));
+        if (!getCount || !getMonitors || !destroy || !getBrightness || !setBrightness) {
+            getCount = nullptr;
+            return false;
+        }
+        return true;
+    }
+
+    // Reads (percent >= 0 to set) the brightness of every physical monitor
+    // behind an HMONITOR. Returns the current percent, or -1 if unsupported.
+    int Access(HMONITOR monitor, int setPercent) {
+        if (!monitor || !Load()) {
+            return -1;
+        }
+        DWORD count = 0;
+        if (!getCount(monitor, &count) || count == 0 || count > 8) {
+            return -1;
+        }
+        CcPhysicalMonitor monitors[8] = {};
+        if (!getMonitors(monitor, count, monitors)) {
+            return -1;
+        }
+        int result = -1;
+        for (DWORD i = 0; i < count; ++i) {
+            DWORD minV = 0, curV = 0, maxV = 0;
+            if (!getBrightness(monitors[i].handle, &minV, &curV, &maxV) || maxV <= minV) {
+                continue;
+            }
+            if (setPercent >= 0) {
+                const DWORD value = minV + static_cast<DWORD>((maxV - minV) * setPercent / 100);
+                if (setBrightness(monitors[i].handle, value)) {
+                    curV = value;
+                }
+            }
+            if (result < 0) {
+                result = static_cast<int>((curV - minV) * 100 / (maxV - minV));
+            }
+        }
+        destroy(count, monitors);
+        return result;
+    }
+};
+
+// ── Network name (Network List Manager) ──────────────────────────────────────
+
+void CcQueryNetwork(bool* connected, std::wstring* name) {
+    static const CLSID kClsidNlm = {0xDCB00C01, 0x570F, 0x4A9B,
+                                    {0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B}};
+    static const IID kIidNlm = {0xDCB00000, 0x570F, 0x4A9B,
+                                {0x8D, 0x69, 0x19, 0x9F, 0xDB, 0xA5, 0x72, 0x3B}};
+    *connected = false;
+    name->clear();
+
+    ComPtr<INetworkListManager> nlm;
+    if (FAILED(CoCreateInstance(kClsidNlm, nullptr, CLSCTX_ALL, kIidNlm,
+                                reinterpret_cast<void**>(nlm.GetAddressOf()))) ||
+        !nlm) {
+        return;
+    }
+    NLM_CONNECTIVITY connectivity = NLM_CONNECTIVITY_DISCONNECTED;
+    if (SUCCEEDED(nlm->GetConnectivity(&connectivity))) {
+        *connected = connectivity != NLM_CONNECTIVITY_DISCONNECTED;
+    }
+    ComPtr<IEnumNetworks> networks;
+    if (SUCCEEDED(nlm->GetNetworks(NLM_ENUM_NETWORK_CONNECTED, networks.GetAddressOf())) && networks) {
+        ComPtr<INetwork> network;
+        ULONG fetched = 0;
+        if (networks->Next(1, network.GetAddressOf(), &fetched) == S_OK && network) {
+            BSTR bstr = nullptr;
+            if (SUCCEEDED(network->GetName(&bstr)) && bstr) {
+                *name = bstr;
+                SysFreeString(bstr);
+            }
+        }
+    }
+}
+
+// ── Wi-Fi networks (WLAN API, loaded at run time) ────────────────────────────
+
+#if DYNAMIC_ISLAND_HAS_WLAN
+struct CcWlan {
+    using Open_t = DWORD(WINAPI*)(DWORD, PVOID, PDWORD, PHANDLE);
+    using Close_t = DWORD(WINAPI*)(HANDLE, PVOID);
+    using EnumInterfaces_t = DWORD(WINAPI*)(HANDLE, PVOID, PWLAN_INTERFACE_INFO_LIST*);
+    using GetNetworks_t = DWORD(WINAPI*)(HANDLE, const GUID*, DWORD, PVOID, PWLAN_AVAILABLE_NETWORK_LIST*);
+    using Scan_t = DWORD(WINAPI*)(HANDLE, const GUID*, const DOT11_SSID*, const WLAN_RAW_DATA*, PVOID);
+    using Connect_t = DWORD(WINAPI*)(HANDLE, const GUID*, const WLAN_CONNECTION_PARAMETERS*, PVOID);
+    using Free_t = VOID(WINAPI*)(PVOID);
+    Open_t open = nullptr;
+    Close_t close = nullptr;
+    EnumInterfaces_t enumInterfaces = nullptr;
+    GetNetworks_t getNetworks = nullptr;
+    Scan_t scan = nullptr;
+    Connect_t connect = nullptr;
+    Free_t freeMemory = nullptr;
+    HANDLE client = nullptr;
+
+    bool Load() {
+        if (client) {
+            return true;
+        }
+        if (!open) {
+            HMODULE dll = LoadLibraryW(L"wlanapi.dll");
+            if (!dll) {
+                return false;
+            }
+            auto get = [dll](const char* name) { return reinterpret_cast<void*>(GetProcAddress(dll, name)); };
+            open = reinterpret_cast<Open_t>(get("WlanOpenHandle"));
+            close = reinterpret_cast<Close_t>(get("WlanCloseHandle"));
+            enumInterfaces = reinterpret_cast<EnumInterfaces_t>(get("WlanEnumInterfaces"));
+            getNetworks = reinterpret_cast<GetNetworks_t>(get("WlanGetAvailableNetworkList"));
+            scan = reinterpret_cast<Scan_t>(get("WlanScan"));
+            connect = reinterpret_cast<Connect_t>(get("WlanConnect"));
+            freeMemory = reinterpret_cast<Free_t>(get("WlanFreeMemory"));
+            if (!open || !close || !enumInterfaces || !getNetworks || !scan || !connect || !freeMemory) {
+                open = nullptr;
+                return false;
+            }
+        }
+        DWORD version = 0;
+        if (open(2, nullptr, &version, &client) != ERROR_SUCCESS) {
+            client = nullptr;
+            return false;
+        }
+        return true;
+    }
+
+    void Close() {
+        if (client) {
+            close(client, nullptr);
+            client = nullptr;
+        }
+    }
+
+    bool FirstInterface(GUID* guid) {
+        PWLAN_INTERFACE_INFO_LIST list = nullptr;
+        if (!Load() || enumInterfaces(client, nullptr, &list) != ERROR_SUCCESS || !list) {
+            return false;
+        }
+        const bool found = list->dwNumberOfItems > 0;
+        if (found) {
+            *guid = list->InterfaceInfo[0].InterfaceGuid;
+        }
+        freeMemory(list);
+        return found;
+    }
+
+    void Scan() {
+        GUID guid = {};
+        if (FirstInterface(&guid)) {
+            scan(client, &guid, nullptr, nullptr, nullptr);
+        }
+    }
+
+    void Connect(const std::wstring& profile, int bssType) {
+        GUID guid = {};
+        if (profile.empty() || !FirstInterface(&guid)) {
+            return;
+        }
+        WLAN_CONNECTION_PARAMETERS params = {};
+        params.wlanConnectionMode = wlan_connection_mode_profile;
+        params.strProfile = profile.c_str();
+        params.dot11BssType = static_cast<DOT11_BSS_TYPE>(bssType);
+        if (connect(client, &guid, &params, nullptr) != ERROR_SUCCESS) {
+            Wh_Log(L"Network panel: WlanConnect failed.");
+        }
+    }
+
+    // One entry per network name, connected first, then by signal strength.
+    bool Networks(std::vector<CcWifiNetwork>* out, bool* denied) {
+        *denied = false;
+        GUID guid = {};
+        if (!FirstInterface(&guid)) {
+            return false;
+        }
+        PWLAN_AVAILABLE_NETWORK_LIST list = nullptr;
+        const DWORD result = getNetworks(client, &guid, 0, nullptr, &list);
+        if (result != ERROR_SUCCESS || !list) {
+            *denied = result == ERROR_ACCESS_DENIED;
+            return false;
+        }
+        std::vector<CcWifiNetwork> networks;
+        for (DWORD i = 0; i < list->dwNumberOfItems; ++i) {
+            const WLAN_AVAILABLE_NETWORK& n = list->Network[i];
+            const int length = static_cast<int>(std::min<ULONG>(n.dot11Ssid.uSSIDLength, 32));
+            if (length <= 0) {
+                continue;  // hidden network
+            }
+            wchar_t ssid[64] = {};
+            if (MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(n.dot11Ssid.ucSSID), length, ssid,
+                                    ARRAYSIZE(ssid) - 1) <= 0) {
+                continue;
+            }
+            auto it = std::find_if(networks.begin(), networks.end(),
+                                   [&](const CcWifiNetwork& e) { return e.ssid == ssid; });
+            if (it == networks.end()) {
+                networks.push_back({});
+                it = networks.end() - 1;
+                it->ssid = ssid;
+            }
+            it->signal = std::max(it->signal, static_cast<int>(n.wlanSignalQuality));
+            it->secured = it->secured || n.bSecurityEnabled;
+            if (n.dwFlags & WLAN_AVAILABLE_NETWORK_CONNECTED) {
+                it->connected = true;
+            }
+            if ((n.dwFlags & WLAN_AVAILABLE_NETWORK_HAS_PROFILE) && n.strProfileName[0]) {
+                it->profile = n.strProfileName;
+                it->bssType = static_cast<int>(n.dot11BssType);
+            }
+        }
+        freeMemory(list);
+        std::stable_sort(networks.begin(), networks.end(), [](const CcWifiNetwork& a, const CcWifiNetwork& b) {
+            if (a.connected != b.connected) return a.connected;
+            return a.signal > b.signal;
+        });
+        *out = std::move(networks);
+        return true;
+    }
+};
+#endif
+
+// ── Paired Bluetooth devices ─────────────────────────────────────────────────
+
+#if DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER
+// Classic and Low Energy pairings both, connected first. A dual-mode device
+// shows up under both selectors, so names are merged.
+bool CcQueryBtDevices(std::vector<CcBtDevice>* out) {
+    using winrt::Windows::Devices::Bluetooth::BluetoothDevice;
+    using winrt::Windows::Devices::Bluetooth::BluetoothLEDevice;
+    using winrt::Windows::Devices::Enumeration::DeviceInformation;
+    using winrt::Windows::Devices::Enumeration::DeviceInformationKind;
+    try {
+        winrt::Windows::Foundation::Collections::IVector<winrt::hstring> props =
+            winrt::single_threaded_vector<winrt::hstring>();
+        props.Append(L"System.Devices.Aep.IsConnected");
+        std::vector<CcBtDevice> devices;
+        for (const winrt::hstring& selector : {BluetoothDevice::GetDeviceSelectorFromPairingState(true),
+                                               BluetoothLEDevice::GetDeviceSelectorFromPairingState(true)}) {
+            const auto list =
+                DeviceInformation::FindAllAsync(selector, props, DeviceInformationKind::AssociationEndpoint).get();
+            for (const DeviceInformation& info : list) {
+                const std::wstring name = info.Name().c_str();
+                if (name.empty()) {
+                    continue;
+                }
+                bool connected = false;
+                if (const auto value = info.Properties().TryLookup(L"System.Devices.Aep.IsConnected")) {
+                    connected = winrt::unbox_value_or<bool>(value, false);
+                }
+                auto it = std::find_if(devices.begin(), devices.end(),
+                                       [&](const CcBtDevice& d) { return d.name == name; });
+                if (it == devices.end()) {
+                    devices.push_back({name, connected});
+                } else {
+                    it->connected = it->connected || connected;
+                }
+            }
+        }
+        std::stable_sort(devices.begin(), devices.end(),
+                         [](const CcBtDevice& a, const CcBtDevice& b) { return a.connected && !b.connected; });
+        *out = std::move(devices);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+#endif
+
+// ── Background worker: radios, network, brightness ───────────────────────────
+
+bool CcStatusWanted() {
+    const ULONGLONG seen = g_ccTabSeenTick.load(std::memory_order_relaxed);
+    return g_ccPanelVisible.load() ||
+           (seen != 0 && GetTickCount64() - seen < 4000);
+}
+bool CcBarWantsStatus();  // defined with the top bar below
+
+DWORD WINAPI CcWorkerProc(void*) {
+    winrt::init_apartment(winrt::apartment_type::multi_threaded);
+
+#if DYNAMIC_ISLAND_HAS_RADIOS
+    using winrt::Windows::Devices::Radios::Radio;
+    using winrt::Windows::Devices::Radios::RadioKind;
+    using winrt::Windows::Devices::Radios::RadioState;
+    std::vector<Radio> radios;
+    bool radiosLoaded = false;
+    double nextRadioReload = 0.0;
+#endif
+    CcDxva2 dxva2;
+#if DYNAMIC_ISLAND_HAS_WLAN
+    CcWlan wlan;
+#endif
+    double nextBtList = 0.0;
+
+    HANDLE events[2] = {g_stopEvent, g_ccWakeEvent};
+    while (true) {
+        const DWORD wait = WaitForMultipleObjects(2, events, FALSE, 2000);
+        if (wait == WAIT_OBJECT_0) {
+            break;
+        }
+        if (!CcStatusWanted() && !CcBarWantsStatus()) {
+            continue;
+        }
+
+        CcStatus next = CcGetStatus();
+
+#if DYNAMIC_ISLAND_HAS_RADIOS
+        try {
+            const double now = NowSeconds();
+            if (!radiosLoaded || now >= nextRadioReload) {
+                Radio::RequestAccessAsync().get();
+                auto list = Radio::GetRadiosAsync().get();
+                radios.clear();
+                for (uint32_t i = 0; i < list.Size(); ++i) {
+                    radios.push_back(list.GetAt(i));
+                }
+                radiosLoaded = true;
+                nextRadioReload = now + 60.0;
+            }
+
+            const int wantWifi = g_ccReqWifi.exchange(-1);
+            const int wantBt = g_ccReqBt.exchange(-1);
+            next.wifiPresent = next.btPresent = false;
+            next.wifiOn = next.btOn = false;
+            for (auto& radio : radios) {
+                const RadioKind kind = radio.Kind();
+                const int want = kind == RadioKind::WiFi ? wantWifi
+                                 : kind == RadioKind::Bluetooth ? wantBt : -1;
+                if (want >= 0) {
+                    try {
+                        radio.SetStateAsync(want ? RadioState::On : RadioState::Off).get();
+                    } catch (...) {
+                        Wh_Log(L"Control Center: could not change a radio's state.");
+                    }
+                }
+                const bool on = radio.State() == RadioState::On;
+                if (kind == RadioKind::WiFi) {
+                    next.wifiPresent = true;
+                    next.wifiOn = next.wifiOn || on;
+                } else if (kind == RadioKind::Bluetooth) {
+                    next.btPresent = true;
+                    next.btOn = next.btOn || on;
+                }
+            }
+        } catch (...) {
+            radiosLoaded = false;
+        }
+#endif
+
+        CcQueryNetwork(&next.netConnected, &next.netName);
+
+        // The network and Bluetooth panels' lists, only while one is open.
+        const bool panelOpen = g_ccPanelVisible.load();
+        const int panelMode = g_ccMode.load();
+#if DYNAMIC_ISLAND_HAS_WLAN
+        {
+            std::wstring profile;
+            int bss = 1;
+            {
+                std::lock_guard lock(g_ccReqMutex);
+                profile.swap(g_ccReqConnectProfile);
+                bss = g_ccReqConnectBss;
+            }
+            if (!profile.empty()) {
+                wlan.Connect(profile, bss);
+            }
+        }
+        if (panelOpen && panelMode == kCcModeWifi) {
+            if (g_ccReqScan.exchange(false)) {
+                wlan.Scan();
+            }
+            if (next.wifiPresent && !next.wifiOn) {
+                next.wifiNetworks.clear();
+                next.wifiListed = true;
+                next.wifiDenied = false;
+            } else if (wlan.Networks(&next.wifiNetworks, &next.wifiDenied)) {
+                next.wifiListed = true;
+            } else {
+                next.wifiNetworks.clear();
+                next.wifiListed = !next.wifiDenied;
+            }
+        } else if (!panelOpen) {
+            wlan.Close();
+        }
+#endif
+#if DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER
+        if (panelOpen && panelMode == kCcModeBluetooth && NowSeconds() >= nextBtList) {
+            if (next.btPresent && !next.btOn) {
+                next.btDevices.clear();
+            } else {
+                CcQueryBtDevices(&next.btDevices);
+            }
+            next.btListed = true;
+            nextBtList = NowSeconds() + 3.0;
+        }
+        if (!panelOpen) {
+            nextBtList = 0.0;
+        }
+#endif
+        (void)panelMode;
+
+        const int wantBrightness = g_ccReqBrightness.exchange(-1);
+        HMONITOR brightnessMonitor = g_ccBrightnessMonitor.load();
+        if (wantBrightness >= 0 || g_ccReadBrightness.exchange(false)) {
+            const int value = dxva2.Access(brightnessMonitor, wantBrightness);
+            next.brightnessKnown = true;
+            next.brightnessSupported = value >= 0;
+            if (value >= 0) {
+                next.brightness = value;
+            }
+        }
+
+        {
+            std::lock_guard lock(g_ccStatusMutex);
+            // A slider being dragged owns the value shown until it is released.
+            if (g_ccReqBrightness.load() >= 0) {
+                next.brightness = g_ccStatus.brightness;
+            }
+            g_ccStatus = next;
+        }
+    }
+
+#if DYNAMIC_ISLAND_HAS_RADIOS
+    radios.clear();  // release the WinRT objects before leaving the apartment
+#endif
+#if DYNAMIC_ISLAND_HAS_WLAN
+    wlan.Close();
+#endif
+    winrt::uninit_apartment();
+    return 0;
+}
+
+// ── Volume (default render endpoint, used on the render thread) ──────────────
+
+ComPtr<IAudioEndpointVolume> g_ccEndpoint;
+
+IAudioEndpointVolume* CcEndpoint() {
+    if (!g_ccEndpoint) {
+        ComPtr<IMMDeviceEnumerator> enumerator;
+        ComPtr<IMMDevice> device;
+        if (SUCCEEDED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+                                       IID_PPV_ARGS(&enumerator))) &&
+            SUCCEEDED(enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device))) {
+            device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, nullptr,
+                             reinterpret_cast<void**>(g_ccEndpoint.GetAddressOf()));
+        }
+    }
+    return g_ccEndpoint.Get();
+}
+
+bool CcGetVolume(float* level, bool* muted) {
+    IAudioEndpointVolume* endpoint = CcEndpoint();
+    BOOL isMuted = FALSE;
+    if (!endpoint || FAILED(endpoint->GetMasterVolumeLevelScalar(level)) ||
+        FAILED(endpoint->GetMute(&isMuted))) {
+        g_ccEndpoint.Reset();  // the default device may have changed; retry next time
+        return false;
+    }
+    *muted = isMuted != FALSE;
+    return true;
+}
+
+void CcSetVolume(float level) {
+    if (IAudioEndpointVolume* endpoint = CcEndpoint()) {
+        endpoint->SetMasterVolumeLevelScalar(Clamp(level, 0.0f, 1.0f), nullptr);
+        if (level > 0.0f) {
+            endpoint->SetMute(FALSE, nullptr);
+        }
+    }
+}
+
+void CcToggleMute() {
+    float level = 0.0f;
+    bool muted = false;
+    if (CcGetVolume(&level, &muted)) {
+        g_ccEndpoint->SetMute(muted ? FALSE : TRUE, nullptr);
+    }
+}
+
+bool CcBattery(int* percent, bool* charging) {
+    SYSTEM_POWER_STATUS status = {};
+    if (!GetSystemPowerStatus(&status) || (status.BatteryFlag & 128) || status.BatteryFlag == 255 ||
+        status.BatteryLifePercent > 100) {
+        return false;
+    }
+    *percent = status.BatteryLifePercent;
+    *charging = status.ACLineStatus == 1;
+    return true;
+}
+
+// Segoe Fluent Icons glyphs.
+namespace CcGlyph {
+    constexpr const wchar_t* kWifi = L"";
+    constexpr const wchar_t* kEthernet = L"";
+    constexpr const wchar_t* kNoNetwork = L"";
+    constexpr const wchar_t* kBluetooth = L"";
+    constexpr const wchar_t* kAirplane = L"";
+    constexpr const wchar_t* kMoon = L"";
+    constexpr const wchar_t* kSun = L"";
+    constexpr const wchar_t* kCast = L"";
+    constexpr const wchar_t* kVolume = L"";
+    constexpr const wchar_t* kVolumeLow = L"";
+    constexpr const wchar_t* kMute = L"";
+    constexpr const wchar_t* kSpeakers = L"";
+    constexpr const wchar_t* kPlay = L"";
+    constexpr const wchar_t* kPause = L"";
+    constexpr const wchar_t* kNext = L"";
+    constexpr const wchar_t* kMusic = L"";
+    constexpr const wchar_t* kPower = L"";
+    constexpr const wchar_t* kList = L"";
+    constexpr const wchar_t* kSettings = L"";
+    constexpr const wchar_t* kControlCenter = L"";
+}
+
+std::wstring CcBatteryGlyph(int percent, bool charging) {
+    const int step = ClampInt((percent + 5) / 10, 0, 10);
+    wchar_t glyph[2] = {static_cast<wchar_t>((charging ? 0xEBAB : 0xEBA0) + step), 0};
+    return glyph;
+}
+
+const wchar_t* CcVolumeGlyph(float level, bool muted) {
+    if (muted || level <= 0.001f) return CcGlyph::kMute;
+    return level < 0.34f ? CcGlyph::kVolumeLow : CcGlyph::kVolume;
+}
+
+const wchar_t* CcNetworkGlyph(const CcStatus& s) {
+    if (!s.netConnected) return CcGlyph::kNoNetwork;
+    return (s.wifiPresent && s.wifiOn) ? CcGlyph::kWifi : CcGlyph::kEthernet;
+}
+
+// ── Control Center panel ─────────────────────────────────────────────────────
+
+constexpr wchar_t kCcClass[] = L"Windhawk.DynamicIslandControlCenter";
+constexpr UINT_PTR kCcTimerId = 0x7C01;
+constexpr float kCcWidth = 320.0f;   // DIPs
+constexpr float kCcHeight = 408.0f;  // DIPs
+
+enum CcHit {
+    kCcHitNone = -1,
+    kCcHitWifiToggle, kCcHitWifiOpen,
+    kCcHitBtToggle, kCcHitBtOpen,
+    kCcHitAirplane,
+    kCcHitDnd, kCcHitNightLight, kCcHitCast,
+    kCcHitBrightness, kCcHitVolume, kCcHitMute, kCcHitAudioOut,
+    kCcHitMediaOpen, kCcHitMediaPlay, kCcHitMediaNext,
+    kCcHitPower, kCcHitBackground, kCcHitSettings,
+    kCcHitCount
+};
+
+HWND g_ccHwnd = nullptr;
+RECT g_ccScreenRect = {};
+float g_ccScale = 1.0f;
+int g_ccHover = kCcHitNone;
+int g_ccDrag = kCcHitNone;  // slider being dragged
+double g_ccShownAt = 0.0;
+float g_ccAlpha = 0.0f;
+float g_ccVolumeLevel = 0.5f;
+bool g_ccMuted = false;
+HDC g_ccMemDc = nullptr;
+HBITMAP g_ccDib = nullptr;
+HGDIOBJ g_ccOldBitmap = nullptr;
+int g_ccDibW = 0, g_ccDibH = 0;
+ComPtr<ID2D1Factory> g_ccD2d;
+ComPtr<IDWriteFactory> g_ccDw;
+ComPtr<ID2D1DCRenderTarget> g_ccRt;
+ComPtr<ID2D1SolidColorBrush> g_ccBrush;
+ComPtr<IDWriteTextFormat> g_ccTitleFmt, g_ccSubFmt, g_ccIconFmt, g_ccSmallIconFmt, g_ccCenterFmt;
+
+void CcHide();
+
+struct CcLayout {
+    D2D1_RECT_F hit[kCcHitCount] = {};
+    D2D1_RECT_F netTile, rightTop, nightTile, castTile, displayTile, soundTile, musicTile;
+    D2D1_RECT_F bottomTiles[3];
+    D2D1_RECT_F brightnessTrack, volumeTrack;
+    D2D1_RECT_F rows[3];
+};
+
+CcLayout CcComputeLayout() {
+    CcLayout l = {};
+    const float p = 12.0f;
+    const float left = p, right = kCcWidth - p;
+    const float colW = (right - left - 10.0f) / 2.0f;
+
+    l.netTile = D2D1::RectF(left, p, left + colW, p + 132.0f);
+    for (int i = 0; i < 3; ++i) {
+        l.rows[i] = D2D1::RectF(left, p + 6.0f + i * 40.0f, left + colW, p + 46.0f + i * 40.0f);
+    }
+    const float rx = left + colW + 10.0f;
+    l.rightTop = D2D1::RectF(rx, p, right, p + 61.0f);
+    const float smallW = (right - rx - 10.0f) / 2.0f;
+    l.nightTile = D2D1::RectF(rx, p + 71.0f, rx + smallW, p + 132.0f);
+    l.castTile = D2D1::RectF(rx + smallW + 10.0f, p + 71.0f, right, p + 132.0f);
+
+    l.displayTile = D2D1::RectF(left, 154.0f, right, 212.0f);
+    l.brightnessTrack = D2D1::RectF(left + 12.0f, 182.0f, right - 12.0f, 202.0f);
+    l.soundTile = D2D1::RectF(left, 222.0f, right, 280.0f);
+    l.volumeTrack = D2D1::RectF(left + 12.0f, 250.0f, right - 46.0f, 270.0f);
+    l.musicTile = D2D1::RectF(left, 290.0f, right, 342.0f);
+    const float bw = (right - left - 20.0f) / 3.0f;
+    for (int i = 0; i < 3; ++i) {
+        l.bottomTiles[i] = D2D1::RectF(left + i * (bw + 10.0f), 352.0f, left + i * (bw + 10.0f) + bw, 396.0f);
+    }
+
+    auto circle = [](const D2D1_RECT_F& row) {
+        const float cx = row.left + 24.0f, cy = (row.top + row.bottom) * 0.5f;
+        return D2D1::RectF(cx - 16.0f, cy - 16.0f, cx + 16.0f, cy + 16.0f);
+    };
+    auto text = [](const D2D1_RECT_F& row) {
+        return D2D1::RectF(row.left + 42.0f, row.top, row.right, row.bottom);
+    };
+    l.hit[kCcHitWifiToggle] = circle(l.rows[0]);
+    l.hit[kCcHitWifiOpen] = text(l.rows[0]);
+    l.hit[kCcHitBtToggle] = circle(l.rows[1]);
+    l.hit[kCcHitBtOpen] = text(l.rows[1]);
+    l.hit[kCcHitAirplane] = l.rows[2];
+    l.hit[kCcHitDnd] = l.rightTop;
+    l.hit[kCcHitNightLight] = l.nightTile;
+    l.hit[kCcHitCast] = l.castTile;
+    l.hit[kCcHitBrightness] = D2D1::RectF(l.brightnessTrack.left - 4.0f, l.brightnessTrack.top - 8.0f,
+                                          l.brightnessTrack.right + 4.0f, l.brightnessTrack.bottom + 6.0f);
+    l.hit[kCcHitVolume] = D2D1::RectF(l.volumeTrack.left + 24.0f, l.volumeTrack.top - 8.0f,
+                                      l.volumeTrack.right + 4.0f, l.volumeTrack.bottom + 6.0f);
+    l.hit[kCcHitMute] = D2D1::RectF(l.volumeTrack.left, l.volumeTrack.top - 4.0f,
+                                    l.volumeTrack.left + 24.0f, l.volumeTrack.bottom + 4.0f);
+    l.hit[kCcHitAudioOut] = D2D1::RectF(right - 40.0f, l.volumeTrack.top - 6.0f, right - 8.0f,
+                                        l.volumeTrack.bottom + 6.0f);
+    const float my = (l.musicTile.top + l.musicTile.bottom) * 0.5f;
+    l.hit[kCcHitMediaOpen] = D2D1::RectF(l.musicTile.left, l.musicTile.top, right - 80.0f, l.musicTile.bottom);
+    l.hit[kCcHitMediaPlay] = D2D1::RectF(right - 76.0f, my - 16.0f, right - 44.0f, my + 16.0f);
+    l.hit[kCcHitMediaNext] = D2D1::RectF(right - 42.0f, my - 16.0f, right - 10.0f, my + 16.0f);
+    l.hit[kCcHitPower] = l.bottomTiles[0];
+    l.hit[kCcHitBackground] = l.bottomTiles[1];
+    l.hit[kCcHitSettings] = l.bottomTiles[2];
+    return l;
+}
+
+bool CcPtIn(const D2D1_RECT_F& r, float x, float y) {
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+// ── Network / Bluetooth panel (the bar's status icons) ───────────────────────
+// Same window as the Control Center, showing one radio: its switch, the
+// networks or paired devices, and two buttons at the bottom.
+
+constexpr int kCcMiniRows = 7;
+enum CcMiniHit {
+    kCcHitMiniToggle = 100,
+    kCcHitMiniMore,
+    kCcHitMiniSettings,
+    kCcHitMiniRow = 110,  // + row index
+};
+
+struct CcMiniLayout {
+    D2D1_RECT_F header, circle, toggle, listLabel;
+    D2D1_RECT_F rows[kCcMiniRows];
+    int rowCount = 0;
+    D2D1_RECT_F more, settings;
+    float height = 0.0f;
+};
+
+int CcMiniItemCount(const CcStatus& s) {
+    return static_cast<int>(g_ccMode.load() == kCcModeWifi ? s.wifiNetworks.size() : s.btDevices.size());
+}
+
+CcMiniLayout CcComputeMiniLayout(const CcStatus& s) {
+    CcMiniLayout l = {};
+    const float p = 12.0f;
+    const float left = p, right = kCcWidth - p;
+    l.header = D2D1::RectF(left, p, right, p + 52.0f);
+    const float cy = (l.header.top + l.header.bottom) * 0.5f;
+    l.circle = D2D1::RectF(left + 8.0f, cy - 16.0f, left + 40.0f, cy + 16.0f);
+    l.toggle = D2D1::RectF(right - 50.0f, cy - 11.0f, right - 10.0f, cy + 11.0f);
+    float y = l.header.bottom + 10.0f;
+    l.listLabel = D2D1::RectF(left + 6.0f, y, right, y + 18.0f);
+    y += 22.0f;
+    l.rowCount = std::min(CcMiniItemCount(s), kCcMiniRows);
+    for (int i = 0; i < kCcMiniRows; ++i) {
+        l.rows[i] = D2D1::RectF(left, y + i * 36.0f, right, y + i * 36.0f + 34.0f);
+    }
+    y += std::max(1, l.rowCount) * 36.0f + 6.0f;
+    const float mid = (left + right) * 0.5f;
+    l.more = D2D1::RectF(left, y, mid - 5.0f, y + 34.0f);
+    l.settings = D2D1::RectF(mid + 5.0f, y, right, y + 34.0f);
+    l.height = y + 34.0f + p;
+    return l;
+}
+
+float CcPanelHeight(const CcStatus& s) {
+    return g_ccMode.load() == kCcModeFull ? kCcHeight : CcComputeMiniLayout(s).height;
+}
+
+int CcMiniHitTest(float x, float y) {
+    const CcStatus s = CcGetStatus();
+    const CcMiniLayout l = CcComputeMiniLayout(s);
+    if (CcPtIn(l.header, x, y)) return kCcHitMiniToggle;
+    if (CcPtIn(l.more, x, y)) return kCcHitMiniMore;
+    if (CcPtIn(l.settings, x, y)) return kCcHitMiniSettings;
+    // With no rows, the message row is clickable when it leads somewhere.
+    const int rows = l.rowCount > 0 ? l.rowCount : (g_ccMode.load() == kCcModeWifi && s.wifiDenied ? 1 : 0);
+    for (int i = 0; i < rows; ++i) {
+        if (CcPtIn(l.rows[i], x, y)) return kCcHitMiniRow + i;
+    }
+    return kCcHitNone;
+}
+
+int CcHitTest(float x, float y) {
+    if (g_ccMode.load() != kCcModeFull) {
+        return CcMiniHitTest(x, y);
+    }
+    const CcLayout l = CcComputeLayout();
+    for (int i = 0; i < kCcHitCount; ++i) {
+        if (CcPtIn(l.hit[i], x, y)) {
+            return i;
+        }
+    }
+    return kCcHitNone;
+}
+
+bool CcEnsureResources() {
+    if (g_ccRt) {
+        return true;
+    }
+    if (!g_ccD2d &&
+        FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory),
+                                 reinterpret_cast<void**>(g_ccD2d.GetAddressOf())))) {
+        return false;
+    }
+    if (!g_ccDw &&
+        FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                   reinterpret_cast<IUnknown**>(g_ccDw.GetAddressOf())))) {
+        return false;
+    }
+    const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+        D2D1_RENDER_TARGET_TYPE_DEFAULT,
+        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED), 0.0f, 0.0f,
+        D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
+    if (FAILED(g_ccD2d->CreateDCRenderTarget(&props, g_ccRt.GetAddressOf()))) {
+        return false;
+    }
+    g_ccRt->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 1), g_ccBrush.GetAddressOf());
+
+    const std::wstring family = g_settings.fontFamily.empty() ? L"Segoe UI Variable Text"
+                                                              : g_settings.fontFamily;
+    auto make = [&](const wchar_t* face, DWRITE_FONT_WEIGHT weight, float size,
+                    ComPtr<IDWriteTextFormat>& out, bool center) {
+        g_ccDw->CreateTextFormat(face, nullptr, weight, DWRITE_FONT_STYLE_NORMAL,
+                                 DWRITE_FONT_STRETCH_NORMAL, size, L"", out.GetAddressOf());
+        if (!out) return;
+        out->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP);
+        out->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        out->SetTextAlignment(center ? DWRITE_TEXT_ALIGNMENT_CENTER : DWRITE_TEXT_ALIGNMENT_LEADING);
+        DWRITE_TRIMMING trimming = {DWRITE_TRIMMING_GRANULARITY_CHARACTER, 0, 0};
+        ComPtr<IDWriteInlineObject> ellipsis;
+        g_ccDw->CreateEllipsisTrimmingSign(out.Get(), ellipsis.GetAddressOf());
+        out->SetTrimming(&trimming, ellipsis.Get());
+    };
+    make(family.c_str(), DWRITE_FONT_WEIGHT_SEMI_BOLD, 12.5f, g_ccTitleFmt, false);
+    make(family.c_str(), DWRITE_FONT_WEIGHT_NORMAL, 11.0f, g_ccSubFmt, false);
+    make(family.c_str(), DWRITE_FONT_WEIGHT_SEMI_BOLD, 11.0f, g_ccCenterFmt, true);
+    make(L"Segoe Fluent Icons", DWRITE_FONT_WEIGHT_NORMAL, 15.0f, g_ccIconFmt, true);
+    make(L"Segoe Fluent Icons", DWRITE_FONT_WEIGHT_NORMAL, 12.0f, g_ccSmallIconFmt, true);
+    return g_ccBrush && g_ccTitleFmt && g_ccSubFmt && g_ccIconFmt;
+}
+
+void CcFill(const D2D1_RECT_F& r, float radius, D2D1_COLOR_F color) {
+    g_ccBrush->SetColor(color);
+    g_ccRt->FillRoundedRectangle(D2D1::RoundedRect(r, radius, radius), g_ccBrush.Get());
+}
+
+void CcTextOut(const std::wstring& text, const D2D1_RECT_F& r, IDWriteTextFormat* format,
+               D2D1_COLOR_F color) {
+    if (!format || text.empty()) return;
+    g_ccBrush->SetColor(color);
+    g_ccRt->DrawTextW(text.c_str(), static_cast<UINT32>(text.size()), format, r, g_ccBrush.Get(),
+                      D2D1_DRAW_TEXT_OPTIONS_CLIP);
+}
+
+D2D1_COLOR_F CcWithAlpha(D2D1_COLOR_F c, float a) {
+    c.a = a;
+    return c;
+}
+
+void CcDrawToggleRow(const D2D1_RECT_F& row, const D2D1_RECT_F& circle, const wchar_t* glyph,
+                     bool on, bool enabled, const std::wstring& title, const std::wstring& sub,
+                     bool hovered, D2D1_COLOR_F accent, D2D1_COLOR_F text, D2D1_COLOR_F muted) {
+    const D2D1_COLOR_F circleColor = on ? accent : D2D1::ColorF(1, 1, 1, hovered ? 0.24f : 0.16f);
+    g_ccBrush->SetColor(CcWithAlpha(circleColor, enabled ? circleColor.a : 0.08f));
+    const D2D1_POINT_2F c = D2D1::Point2F((circle.left + circle.right) * 0.5f,
+                                          (circle.top + circle.bottom) * 0.5f);
+    g_ccRt->FillEllipse(D2D1::Ellipse(c, 14.0f, 14.0f), g_ccBrush.Get());
+    CcTextOut(glyph, D2D1::RectF(c.x - 14.0f, c.y - 14.0f, c.x + 14.0f, c.y + 14.0f),
+              g_ccSmallIconFmt.Get(), enabled ? D2D1::ColorF(1, 1, 1, 1) : CcWithAlpha(text, 0.4f));
+    const float tx = row.left + 46.0f;
+    const float cy = (row.top + row.bottom) * 0.5f;
+    CcTextOut(title, D2D1::RectF(tx, cy - 15.0f, row.right - 6.0f, cy + 1.0f), g_ccTitleFmt.Get(), text);
+    CcTextOut(sub, D2D1::RectF(tx, cy, row.right - 6.0f, cy + 14.0f), g_ccSubFmt.Get(), muted);
+}
+
+void CcDrawSlider(const D2D1_RECT_F& track, float value, const wchar_t* glyph, bool enabled,
+                  D2D1_COLOR_F text) {
+    const float radius = (track.bottom - track.top) * 0.5f;
+    CcFill(track, radius, D2D1::ColorF(1, 1, 1, enabled ? 0.16f : 0.07f));
+    if (enabled) {
+        const float minW = track.bottom - track.top;
+        const float w = minW + (track.right - track.left - minW) * Clamp(value, 0.0f, 1.0f);
+        CcFill(D2D1::RectF(track.left, track.top, track.left + w, track.bottom), radius,
+               D2D1::ColorF(1, 1, 1, 0.92f));
+        // Knob, as on macOS: a slightly brighter disc at the end of the fill.
+        g_ccBrush->SetColor(D2D1::ColorF(1, 1, 1, 1));
+        g_ccRt->FillEllipse(D2D1::Ellipse(D2D1::Point2F(track.left + w - radius, (track.top + track.bottom) * 0.5f),
+                                          radius - 1.0f, radius - 1.0f), g_ccBrush.Get());
+    }
+    CcTextOut(glyph, D2D1::RectF(track.left, track.top, track.left + (track.bottom - track.top) + 4.0f, track.bottom),
+              g_ccSmallIconFmt.Get(), enabled ? D2D1::ColorF(0.1f, 0.1f, 0.12f, 0.85f) : CcWithAlpha(text, 0.4f));
+}
+
+// Network names joined recently from the panel, shown as "Conectando…" until
+// Windows reports the connection (or gives up).
+std::wstring g_ccConnectingSsid;
+double g_ccConnectingSince = 0.0;
+
+const wchar_t* CcSignalGlyph(int signal) {
+    if (signal >= 75) return L"";
+    if (signal >= 50) return L"";
+    if (signal >= 25) return L"";
+    return L"";
+}
+
+const wchar_t* CcBtDeviceGlyph(const std::wstring& name) {
+    std::wstring lower = name;
+    std::transform(lower.begin(), lower.end(), lower.begin(),
+                   [](wchar_t ch) { return static_cast<wchar_t>(towlower(ch)); });
+    auto has = [&](const wchar_t* word) { return lower.find(word) != std::wstring::npos; };
+    if (has(L"buds") || has(L"airpods") || has(L"head") || has(L"auricular") || has(L"cascos")) return L"";
+    if (has(L"speaker") || has(L"altavoz") || has(L"soundbar")) return L"";
+    if (has(L"mouse") || has(L"ratón") || has(L"raton")) return L"";
+    if (has(L"keyboard") || has(L"teclado")) return L"";
+    if (has(L"phone") || has(L"iphone") || has(L"galaxy") || has(L"pixel")) return L"";
+    if (has(L"controller") || has(L"mando") || has(L"xbox")) return L"";
+    return L"";
+}
+
+void CcDrawMini(const CcStatus& s, D2D1_COLOR_F text, D2D1_COLOR_F muted, D2D1_COLOR_F accent) {
+    const bool wifiMode = g_ccMode.load() == kCcModeWifi;
+    const CcMiniLayout l = CcComputeMiniLayout(s);
+
+    // Header: radio, state and a switch on the right, as on macOS.
+    const bool present = wifiMode ? s.wifiPresent : s.btPresent;
+    const bool on = wifiMode ? (s.wifiPresent ? s.wifiOn : s.netConnected) : s.btOn;
+    std::wstring sub;
+    if (wifiMode) {
+        sub = s.netConnected ? (s.netName.empty() ? L"Conectado" : s.netName)
+                             : (s.wifiPresent && !s.wifiOn ? L"Desactivado" : L"Sin conexión");
+    } else {
+        sub = !s.btPresent ? L"No disponible" : (s.btOn ? L"Activado" : L"Desactivado");
+    }
+    CcFill(l.header, 14.0f, D2D1::ColorF(1, 1, 1, g_ccHover == kCcHitMiniToggle ? 0.12f : 0.08f));
+    CcDrawToggleRow(D2D1::RectF(l.header.left, l.header.top, l.toggle.left - 6.0f, l.header.bottom), l.circle,
+                    wifiMode ? (s.wifiPresent ? CcGlyph::kWifi : CcGlyph::kEthernet) : CcGlyph::kBluetooth, on,
+                    wifiMode || present, wifiMode ? (s.wifiPresent ? L"Wi-Fi" : L"Red") : L"Bluetooth", sub,
+                    g_ccHover == kCcHitMiniToggle, accent, text, muted);
+    if (present) {
+        const float r = (l.toggle.bottom - l.toggle.top) * 0.5f;
+        CcFill(l.toggle, r, on ? accent : D2D1::ColorF(1, 1, 1, 0.18f));
+        const float kx = on ? l.toggle.right - r : l.toggle.left + r;
+        g_ccBrush->SetColor(D2D1::ColorF(1, 1, 1, 1));
+        g_ccRt->FillEllipse(D2D1::Ellipse(D2D1::Point2F(kx, (l.toggle.top + l.toggle.bottom) * 0.5f), r - 2.5f, r - 2.5f),
+                            g_ccBrush.Get());
+    }
+
+    CcTextOut(wifiMode ? L"Redes" : L"Dispositivos", l.listLabel, g_ccSubFmt.Get(), muted);
+
+    if (l.rowCount == 0) {
+        std::wstring message;
+        if (wifiMode) {
+            message = !s.wifiPresent ? L"No hay adaptador Wi-Fi"
+                      : !s.wifiOn    ? L"El Wi-Fi está desactivado"
+                      : s.wifiDenied ? L"Permite la ubicación para ver las redes · clic"
+                      : s.wifiListed ? L"No se encuentran redes"
+                                     : L"Buscando redes…";
+        } else {
+            message = !s.btPresent ? L"Bluetooth no disponible"
+                      : !s.btOn    ? L"El Bluetooth está desactivado"
+                      : s.btListed ? L"No hay dispositivos vinculados"
+                                   : L"Buscando dispositivos…";
+        }
+        const D2D1_RECT_F& row = l.rows[0];
+        if (g_ccHover == kCcHitMiniRow) CcFill(row, 10.0f, D2D1::ColorF(1, 1, 1, 0.10f));
+        CcTextOut(message, D2D1::RectF(row.left + 12.0f, row.top, row.right - 8.0f, row.bottom), g_ccSubFmt.Get(),
+                  muted);
+    }
+
+    const double now = NowSeconds();
+    for (int i = 0; i < l.rowCount; ++i) {
+        const D2D1_RECT_F& row = l.rows[i];
+        const bool hovered = g_ccHover == kCcHitMiniRow + i;
+        if (hovered) CcFill(row, 10.0f, D2D1::ColorF(1, 1, 1, 0.10f));
+        const D2D1_RECT_F icon = D2D1::RectF(row.left + 6.0f, row.top + 3.0f, row.left + 34.0f, row.bottom - 3.0f);
+        std::wstring name, state;
+        const wchar_t* glyph = nullptr;
+        bool highlighted = false;
+        if (wifiMode) {
+            const CcWifiNetwork& n = s.wifiNetworks[i];
+            name = n.ssid;
+            glyph = CcSignalGlyph(n.signal);
+            highlighted = n.connected;
+            if (n.connected) {
+                state = L"Conectada";
+            } else if (n.ssid == g_ccConnectingSsid && now - g_ccConnectingSince < 12.0) {
+                state = L"Conectando…";
+            } else if (!n.profile.empty()) {
+                state = L"Guardada";
+            }
+        } else {
+            const CcBtDevice& d = s.btDevices[i];
+            name = d.name;
+            glyph = CcBtDeviceGlyph(d.name);
+            highlighted = d.connected;
+            state = d.connected ? L"Conectado" : L"";
+        }
+        g_ccBrush->SetColor(highlighted ? accent : D2D1::ColorF(1, 1, 1, 0.12f));
+        g_ccRt->FillEllipse(D2D1::Ellipse(D2D1::Point2F((icon.left + icon.right) * 0.5f, (icon.top + icon.bottom) * 0.5f),
+                                          13.0f, 13.0f), g_ccBrush.Get());
+        CcTextOut(glyph, icon, g_ccSmallIconFmt.Get(), D2D1::ColorF(1, 1, 1, 1));
+        float nameRight = row.right - 10.0f;
+        if (wifiMode && s.wifiNetworks[i].secured) {
+            CcTextOut(L"", D2D1::RectF(row.right - 28.0f, row.top, row.right - 6.0f, row.bottom),
+                      g_ccSmallIconFmt.Get(), muted);
+            nameRight -= 22.0f;
+        }
+        if (!state.empty()) {
+            CcTextOut(state, D2D1::RectF(nameRight - 84.0f, row.top, nameRight, row.bottom), g_ccSubFmt.Get(), muted);
+            nameRight -= 88.0f;
+        }
+        CcTextOut(name, D2D1::RectF(row.left + 44.0f, row.top, nameRight, row.bottom), g_ccTitleFmt.Get(), text);
+    }
+
+    auto button = [&](const D2D1_RECT_F& r, int hit, const wchar_t* glyph, const wchar_t* label) {
+        CcFill(r, 12.0f, D2D1::ColorF(1, 1, 1, g_ccHover == hit ? 0.13f : 0.08f));
+        CcTextOut(glyph, D2D1::RectF(r.left + 4.0f, r.top, r.left + 30.0f, r.bottom), g_ccSmallIconFmt.Get(), text);
+        CcTextOut(label, D2D1::RectF(r.left + 30.0f, r.top, r.right - 4.0f, r.bottom), g_ccSubFmt.Get(), text);
+    };
+    button(l.more, kCcHitMiniMore, L"", wifiMode ? L"Otras redes" : L"Añadir dispositivo");
+    button(l.settings, kCcHitMiniSettings, CcGlyph::kSettings, L"Configuración");
+}
+
+void CcRender() {
+    if (!g_ccHwnd || !g_ccPanelVisible.load() || !CcEnsureResources()) {
+        return;
+    }
+    const CcStatus s = CcGetStatus();
+    const float panelHeight = CcPanelHeight(s);
+    {
+        // The network and Bluetooth panels grow and shrink with their lists.
+        const int wantH = static_cast<int>(std::lround(panelHeight * g_ccScale));
+        if (wantH != g_ccScreenRect.bottom - g_ccScreenRect.top) {
+            g_ccScreenRect.bottom = g_ccScreenRect.top + wantH;
+        }
+    }
+    const int wPx = g_ccScreenRect.right - g_ccScreenRect.left;
+    const int hPx = g_ccScreenRect.bottom - g_ccScreenRect.top;
+    if (wPx <= 0 || hPx <= 0) return;
+
+    if (!g_ccMemDc) {
+        HDC screen = GetDC(nullptr);
+        g_ccMemDc = CreateCompatibleDC(screen);
+        ReleaseDC(nullptr, screen);
+    }
+    if (wPx != g_ccDibW || hPx != g_ccDibH || !g_ccDib) {
+        if (g_ccOldBitmap) SelectObject(g_ccMemDc, g_ccOldBitmap);
+        if (g_ccDib) DeleteObject(g_ccDib);
+        BITMAPINFO bi = {};
+        bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bi.bmiHeader.biWidth = wPx;
+        bi.bmiHeader.biHeight = -hPx;
+        bi.bmiHeader.biPlanes = 1;
+        bi.bmiHeader.biBitCount = 32;
+        bi.bmiHeader.biCompression = BI_RGB;
+        void* bits = nullptr;
+        g_ccDib = CreateDIBSection(g_ccMemDc, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+        if (!g_ccDib) return;
+        g_ccOldBitmap = SelectObject(g_ccMemDc, g_ccDib);
+        g_ccDibW = wPx;
+        g_ccDibH = hPx;
+    }
+
+    RECT rc = {0, 0, wPx, hPx};
+    if (FAILED(g_ccRt->BindDC(g_ccMemDc, &rc))) return;
+    g_ccRt->SetDpi(96.0f * g_ccScale, 96.0f * g_ccScale);
+
+    const CcLayout l = CcComputeLayout();
+    D2D1_COLOR_F bg = g_settings.pillBgColor;
+    const D2D1_COLOR_F text = g_settings.textPrimaryColor;
+    const D2D1_COLOR_F muted = g_settings.textSecondaryColor;
+    D2D1_COLOR_F accent = g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent
+                                                                       : GetSystemAccentColor();
+    accent.a = 1.0f;
+    auto tileColor = [&](int hit) {
+        return D2D1::ColorF(1, 1, 1, g_ccHover == hit ? 0.13f : 0.08f);
+    };
+
+    std::wstring mediaTitle, mediaArtist;
+    bool mediaPlaying = false, mediaAvailable = false;
+    {
+        std::lock_guard lock(g_stateMutex);
+        mediaAvailable = g_state.media.available && !g_state.media.title.empty();
+        mediaTitle = g_state.media.title;
+        mediaArtist = g_state.media.artist;
+        mediaPlaying = g_state.media.playing;
+    }
+    if (g_ccDrag != kCcHitVolume) {
+        CcGetVolume(&g_ccVolumeLevel, &g_ccMuted);
+    }
+
+    g_ccRt->BeginDraw();
+    g_ccRt->Clear(D2D1::ColorF(0, 0, 0, 0));
+
+    // Panel background with a hairline edge.
+    bg.a = 0.95f;
+    CcFill(D2D1::RectF(0.5f, 0.5f, kCcWidth - 0.5f, panelHeight - 0.5f), 18.0f, bg);
+    g_ccBrush->SetColor(D2D1::ColorF(1, 1, 1, 0.10f));
+    g_ccRt->DrawRoundedRectangle(D2D1::RoundedRect(D2D1::RectF(0.5f, 0.5f, kCcWidth - 0.5f, panelHeight - 0.5f),
+                                                   18.0f, 18.0f), g_ccBrush.Get(), 1.0f);
+
+    if (g_ccMode.load() != kCcModeFull) {
+        CcDrawMini(s, text, muted, accent);
+    } else {
+        // Network / Bluetooth / airplane tile.
+        CcFill(l.netTile, 14.0f, D2D1::ColorF(1, 1, 1, 0.08f));
+        {
+            const bool wifi = s.wifiPresent;
+            const std::wstring netTitle = wifi ? L"Wi-Fi" : L"Red";
+            std::wstring netSub = s.netConnected ? (s.netName.empty() ? L"Conectado" : s.netName)
+                                                 : (wifi && !s.wifiOn ? L"Desactivado" : L"Sin conexión");
+            CcDrawToggleRow(l.rows[0], l.hit[kCcHitWifiToggle], wifi ? CcGlyph::kWifi : CcGlyph::kEthernet,
+                            wifi ? s.wifiOn : s.netConnected, true, netTitle, netSub,
+                            g_ccHover == kCcHitWifiToggle || g_ccHover == kCcHitWifiOpen, accent, text, muted);
+            CcDrawToggleRow(l.rows[1], l.hit[kCcHitBtToggle], CcGlyph::kBluetooth, s.btOn, s.btPresent,
+                            L"Bluetooth", s.btPresent ? (s.btOn ? L"Activado" : L"Desactivado") : L"No disponible",
+                            g_ccHover == kCcHitBtToggle || g_ccHover == kCcHitBtOpen, accent, text, muted);
+            CcDrawToggleRow(l.rows[2], l.hit[kCcHitAirplane], CcGlyph::kAirplane, false, true,
+                            L"Modo avión", L"Configuración", g_ccHover == kCcHitAirplane, accent, text, muted);
+        }
+
+        // Do Not Disturb.
+        {
+            const bool dnd = g_isDnDActive.load();
+            CcFill(l.rightTop, 14.0f, tileColor(kCcHitDnd));
+            const D2D1_RECT_F row = D2D1::RectF(l.rightTop.left, l.rightTop.top, l.rightTop.right, l.rightTop.bottom);
+            const D2D1_RECT_F circle = D2D1::RectF(row.left + 8.0f, row.top, row.left + 40.0f, row.bottom);
+            CcDrawToggleRow(row, circle, CcGlyph::kMoon, dnd, true, L"No molestar",
+                            dnd ? L"Activado" : L"Desactivado", g_ccHover == kCcHitDnd, accent, text, muted);
+        }
+
+        // Night light and cast tiles.
+        auto smallTile = [&](const D2D1_RECT_F& r, int hit, const wchar_t* glyph, const wchar_t* label) {
+            CcFill(r, 14.0f, tileColor(hit));
+            CcTextOut(glyph, D2D1::RectF(r.left, r.top + 6.0f, r.right, r.top + 32.0f), g_ccIconFmt.Get(), text);
+            CcTextOut(label, D2D1::RectF(r.left + 4.0f, r.top + 32.0f, r.right - 4.0f, r.bottom - 6.0f),
+                      g_ccCenterFmt.Get(), text);
+        };
+        smallTile(l.nightTile, kCcHitNightLight, CcGlyph::kSun, L"Luz nocturna");
+        smallTile(l.castTile, kCcHitCast, CcGlyph::kCast, L"Transmitir");
+
+        // Display.
+        CcFill(l.displayTile, 14.0f, D2D1::ColorF(1, 1, 1, 0.08f));
+        CcTextOut(L"Pantalla", D2D1::RectF(l.displayTile.left + 12.0f, l.displayTile.top + 6.0f,
+                                           l.displayTile.right - 12.0f, l.displayTile.top + 24.0f),
+                  g_ccTitleFmt.Get(), text);
+        const bool brightnessOk = !s.brightnessKnown || s.brightnessSupported;
+        CcDrawSlider(l.brightnessTrack, s.brightness / 100.0f, CcGlyph::kSun, brightnessOk, text);
+        if (!brightnessOk) {
+            CcTextOut(L"No disponible para esta pantalla · clic para abrir Configuración",
+                      D2D1::RectF(l.brightnessTrack.left + 28.0f, l.brightnessTrack.top, l.brightnessTrack.right - 8.0f,
+                                  l.brightnessTrack.bottom), g_ccSubFmt.Get(), muted);
+        }
+
+        // Sound.
+        CcFill(l.soundTile, 14.0f, D2D1::ColorF(1, 1, 1, 0.08f));
+        CcTextOut(L"Sonido", D2D1::RectF(l.soundTile.left + 12.0f, l.soundTile.top + 6.0f,
+                                         l.soundTile.right - 12.0f, l.soundTile.top + 24.0f),
+                  g_ccTitleFmt.Get(), text);
+        CcDrawSlider(l.volumeTrack, g_ccMuted ? 0.0f : g_ccVolumeLevel, CcVolumeGlyph(g_ccVolumeLevel, g_ccMuted),
+                     true, text);
+        {
+            const D2D1_RECT_F& r = l.hit[kCcHitAudioOut];
+            if (g_ccHover == kCcHitAudioOut) CcFill(r, 10.0f, D2D1::ColorF(1, 1, 1, 0.12f));
+            CcTextOut(CcGlyph::kSpeakers, r, g_ccIconFmt.Get(), text);
+        }
+
+        // Music.
+        CcFill(l.musicTile, 14.0f, tileColor(kCcHitMediaOpen));
+        {
+            const D2D1_RECT_F art = D2D1::RectF(l.musicTile.left + 10.0f, l.musicTile.top + 10.0f,
+                                                l.musicTile.left + 42.0f, l.musicTile.bottom - 10.0f);
+            CcFill(art, 8.0f, CcWithAlpha(accent, 0.85f));
+            CcTextOut(CcGlyph::kMusic, art, g_ccSmallIconFmt.Get(), D2D1::ColorF(1, 1, 1, 1));
+            const float tx = art.right + 10.0f;
+            const float tr = l.hit[kCcHitMediaPlay].left - 6.0f;
+            if (mediaAvailable) {
+                CcTextOut(mediaTitle, D2D1::RectF(tx, l.musicTile.top + 9.0f, tr, l.musicTile.top + 27.0f),
+                          g_ccTitleFmt.Get(), text);
+                CcTextOut(mediaArtist, D2D1::RectF(tx, l.musicTile.top + 26.0f, tr, l.musicTile.top + 42.0f),
+                          g_ccSubFmt.Get(), muted);
+            } else {
+                CcTextOut(L"Música", D2D1::RectF(tx, l.musicTile.top, tr, l.musicTile.bottom),
+                          g_ccTitleFmt.Get(), text);
+            }
+            for (int hit : {static_cast<int>(kCcHitMediaPlay), static_cast<int>(kCcHitMediaNext)}) {
+                const D2D1_RECT_F& r = l.hit[hit];
+                if (g_ccHover == hit) CcFill(r, 16.0f, D2D1::ColorF(1, 1, 1, 0.14f));
+                const wchar_t* glyph = hit == kCcHitMediaNext ? CcGlyph::kNext
+                                                              : (mediaPlaying ? CcGlyph::kPause : CcGlyph::kPlay);
+                CcTextOut(glyph, r, g_ccIconFmt.Get(), mediaAvailable ? text : CcWithAlpha(text, 0.4f));
+            }
+        }
+
+        // Bottom shortcuts.
+        {
+            int battery = 0;
+            bool charging = false;
+            const bool hasBattery = CcBattery(&battery, &charging);
+            wchar_t batteryText[16] = {};
+            swprintf_s(batteryText, L"%d%%", battery);
+            const std::wstring powerGlyph = hasBattery ? CcBatteryGlyph(battery, charging) : CcGlyph::kPower;
+            struct Item { int hit; std::wstring glyph; std::wstring label; };
+            const Item items[3] = {
+                {kCcHitPower, powerGlyph, hasBattery ? std::wstring(batteryText) : L"Energía"},
+                {kCcHitBackground, CcGlyph::kList, L"Segundo plano"},
+                {kCcHitSettings, CcGlyph::kSettings, L"Ajustes"},
+            };
+            for (int i = 0; i < 3; ++i) {
+                const D2D1_RECT_F& r = l.bottomTiles[i];
+                CcFill(r, 12.0f, tileColor(items[i].hit));
+                CcTextOut(items[i].glyph, D2D1::RectF(r.left + 4.0f, r.top, r.left + 30.0f, r.bottom),
+                          g_ccIconFmt.Get(), text);
+                CcTextOut(items[i].label, D2D1::RectF(r.left + 30.0f, r.top, r.right - 4.0f, r.bottom),
+                          g_ccSubFmt.Get(), text);
+            }
+        }
+    }
+
+    if (FAILED(g_ccRt->EndDraw())) {
+        g_ccRt.Reset();  // recreated next frame
+        return;
+    }
+
+    POINT src = {0, 0};
+    POINT dst = {g_ccScreenRect.left, g_ccScreenRect.top};
+    SIZE size = {wPx, hPx};
+    BLENDFUNCTION blend = {AC_SRC_OVER, 0,
+                           static_cast<BYTE>(Clamp(g_ccAlpha, 0.0f, 1.0f) * 255.0f), AC_SRC_ALPHA};
+    UpdateLayeredWindow(g_ccHwnd, nullptr, &dst, &size, g_ccMemDc, &src, 0, &blend, ULW_ALPHA);
+}
+
+// Opens the panel with its top edge at anchorTop, centred on anchorCenterX
+// (fromNotch) or right-aligned to anchorRight (from the bar). mode picks the
+// whole panel or just the network or Bluetooth section.
+void CcShowAt(HMONITOR monitor, int anchorTop, int anchorCenterX, int anchorRight, bool fromNotch,
+              int mode = kCcModeFull) {
+    if (!g_ccHwnd) return;
+    g_ccMode = mode;
+    if (mode == kCcModeWifi) {
+        g_ccReqScan = true;
+    }
+    UINT dpi = 96;
+    {
+        UINT dpiX = 96, dpiY = 96;
+        using GetDpiForMonitor_t = HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*);
+        static auto pGetDpiForMonitor = reinterpret_cast<GetDpiForMonitor_t>(
+            reinterpret_cast<void*>(GetProcAddress(GetModuleHandleW(L"shcore.dll"), "GetDpiForMonitor")));
+        if (pGetDpiForMonitor && SUCCEEDED(pGetDpiForMonitor(monitor, 0, &dpiX, &dpiY)) && dpiY) {
+            dpi = dpiY;
+        }
+    }
+    g_ccScale = dpi / 96.0f;
+    const int w = static_cast<int>(std::lround(kCcWidth * g_ccScale));
+    const int h = static_cast<int>(std::lround(CcPanelHeight(CcGetStatus()) * g_ccScale));
+
+    MONITORINFO mi = {sizeof(mi)};
+    GetMonitorInfoW(monitor, &mi);
+    int x = fromNotch ? anchorCenterX - w / 2 : anchorRight - w;
+    x = ClampInt(x, static_cast<int>(mi.rcMonitor.left) + 8, static_cast<int>(mi.rcMonitor.right) - w - 8);
+    int y = ClampInt(anchorTop, static_cast<int>(mi.rcMonitor.top), static_cast<int>(mi.rcMonitor.bottom) - h);
+    g_ccScreenRect = {x, y, x + w, y + h};
+
+    g_ccHover = kCcHitNone;
+    g_ccDrag = kCcHitNone;
+    g_ccAlpha = 0.0f;
+    g_ccShownAt = NowSeconds();
+    g_ccBrightnessMonitor = monitor;
+    g_ccReadBrightness = true;
+    g_ccPanelVisible = true;
+    g_ccNotchOpen = fromNotch;
+    CcWake();
+
+    SetWindowPos(g_ccHwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+    SetForegroundWindow(g_ccHwnd);
+    CcRender();
+    SetTimer(g_ccHwnd, kCcTimerId, 16, nullptr);
+}
+
+void CcHide() {
+    if (!g_ccPanelVisible.exchange(false)) return;
+    g_ccNotchOpen = false;
+    g_ccDrag = kCcHitNone;
+    if (g_ccHwnd) {
+        KillTimer(g_ccHwnd, kCcTimerId);
+        if (GetCapture() == g_ccHwnd) ReleaseCapture();
+        ShowWindow(g_ccHwnd, SW_HIDE);
+    }
+    g_layoutDirty = true;
+}
+
+bool CcIsOpen() { return g_ccPanelVisible.load(); }
+
+void CcToggleFromNotch() {
+    if (CcIsOpen()) {
+        CcHide();
+        return;
+    }
+    if (!g_hwnd) return;
+    RECT r = {};
+    GetWindowRect(g_hwnd, &r);
+    const int bottom = r.bottom - static_cast<int>(std::lround(kRenderPadY)) + 8;
+    CcShowAt(MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTONEAREST), bottom, (r.left + r.right) / 2, 0, true);
+}
+
+void CcApplySlider(int hit, float dipX) {
+    const CcLayout l = CcComputeLayout();
+    const D2D1_RECT_F track = hit == kCcHitBrightness ? l.brightnessTrack : l.volumeTrack;
+    const float minW = track.bottom - track.top;
+    const float value = Clamp((dipX - track.left - minW * 0.5f) / (track.right - track.left - minW), 0.0f, 1.0f);
+    if (hit == kCcHitVolume) {
+        g_ccVolumeLevel = value;
+        g_ccMuted = value <= 0.001f;
+        CcSetVolume(value);
+    } else {
+        const int percent = static_cast<int>(std::lround(value * 100.0f));
+        {
+            std::lock_guard lock(g_ccStatusMutex);
+            g_ccStatus.brightness = percent;
+        }
+        g_ccReqBrightness = percent;
+        CcWake();
+    }
+}
+
+void CcActivateMini(int hit) {
+    const CcStatus s = CcGetStatus();
+    const bool wifiMode = g_ccMode.load() == kCcModeWifi;
+    if (hit == kCcHitMiniMore) {
+        CcHide();
+        CcShellOpen(wifiMode ? L"ms-availablenetworks:" : L"ms-settings-connectabledevices:devicediscovery");
+        return;
+    }
+    if (hit == kCcHitMiniSettings) {
+        CcHide();
+        CcShellOpen(wifiMode ? L"ms-settings:network-wifi" : L"ms-settings:bluetooth");
+        return;
+    }
+    if (hit < kCcHitMiniRow) {
+        return;
+    }
+    const size_t index = static_cast<size_t>(hit - kCcHitMiniRow);
+    if (!wifiMode) {
+        // There is no public API to connect a paired device; Settings can.
+        CcHide();
+        CcShellOpen(L"ms-settings:bluetooth");
+        return;
+    }
+    if (index >= s.wifiNetworks.size()) {
+        if (s.wifiDenied) {
+            CcHide();
+            CcShellOpen(L"ms-settings:privacy-location");
+        }
+        return;
+    }
+    const CcWifiNetwork& n = s.wifiNetworks[index];
+    if (n.connected) {
+        return;
+    }
+    if (n.profile.empty()) {
+        // A network Windows has never joined needs its password, which the
+        // Windows network list asks for.
+        CcHide();
+        CcShellOpen(L"ms-availablenetworks:");
+        return;
+    }
+    {
+        std::lock_guard lock(g_ccReqMutex);
+        g_ccReqConnectProfile = n.profile;
+        g_ccReqConnectBss = n.bssType;
+    }
+    g_ccConnectingSsid = n.ssid;
+    g_ccConnectingSince = NowSeconds();
+    CcWake();
+}
+
+void CcActivate(int hit) {
+    const CcStatus s = CcGetStatus();
+    if (g_ccMode.load() != kCcModeFull && hit != kCcHitNone) {
+        if (hit == kCcHitMiniToggle) {
+            hit = g_ccMode.load() == kCcModeWifi ? kCcHitWifiToggle : kCcHitBtToggle;
+        } else {
+            CcActivateMini(hit);
+            return;
+        }
+    }
+    switch (hit) {
+        case kCcHitWifiToggle:
+            if (s.wifiPresent) {
+                g_ccReqWifi = s.wifiOn ? 0 : 1;
+                {
+                    std::lock_guard lock(g_ccStatusMutex);
+                    g_ccStatus.wifiOn = !s.wifiOn;
+                }
+                CcWake();
+                return;
+            }
+            [[fallthrough]];
+        case kCcHitWifiOpen:
+            CcHide();
+            CcShellOpen(L"ms-availablenetworks:");
+            return;
+        case kCcHitBtToggle:
+            if (s.btPresent) {
+                g_ccReqBt = s.btOn ? 0 : 1;
+                {
+                    std::lock_guard lock(g_ccStatusMutex);
+                    g_ccStatus.btOn = !s.btOn;
+                }
+                CcWake();
+                return;
+            }
+            [[fallthrough]];
+        case kCcHitBtOpen:
+            CcHide();
+            CcShellOpen(L"ms-settings:bluetooth");
+            return;
+        case kCcHitAirplane:
+            CcHide();
+            CcShellOpen(L"ms-settings:network-airplanemode");
+            return;
+        case kCcHitDnd:
+            CcHide();
+            CcShellOpen(L"ms-settings:notifications");
+            return;
+        case kCcHitNightLight:
+            CcHide();
+            CcShellOpen(L"ms-settings:nightlight");
+            return;
+        case kCcHitCast:
+            CcHide();
+            CcSendKeys({VK_LWIN, 'K'});
+            return;
+        case kCcHitBrightness:
+            if (s.brightnessKnown && !s.brightnessSupported) {
+                CcHide();
+                CcShellOpen(L"ms-settings:display");
+            }
+            return;
+        case kCcHitMute:
+            CcToggleMute();
+            return;
+        case kCcHitAudioOut:
+            CcHide();
+            CcSendKeys({VK_LWIN, VK_CONTROL, 'V'});
+            return;
+        case kCcHitMediaOpen:
+            CcHide();
+            OpenRelevantApp();
+            return;
+        case kCcHitMediaPlay:
+            CcSendKeys({VK_MEDIA_PLAY_PAUSE});
+            return;
+        case kCcHitMediaNext:
+            CcSendKeys({VK_MEDIA_NEXT_TRACK});
+            return;
+        case kCcHitPower: {
+            int battery = 0;
+            bool charging = false;
+            CcHide();
+            CcShellOpen(CcBattery(&battery, &charging) ? L"ms-settings:batterysaver" : L"ms-settings:powersleep");
+            return;
+        }
+        case kCcHitBackground:
+            // Task Manager's Processes page lists the background processes.
+            CcHide();
+            CcShellOpen(L"taskmgr.exe", L"/0");
+            return;
+        case kCcHitSettings:
+            CcHide();
+            CcShellOpen(L"ms-settings:");
+            return;
+    }
+}
+
+bool CcCursorInWindow(HWND hwnd, POINT pt) {
+    RECT r = {};
+    return hwnd && IsWindowVisible(hwnd) && GetWindowRect(hwnd, &r) && PtInRect(&r, pt);
+}
+
+LRESULT CALLBACK CcWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    auto dip = [](LPARAM lp, float* x, float* y) {
+        *x = GET_X_LPARAM(lp) / g_ccScale;
+        *y = GET_Y_LPARAM(lp) / g_ccScale;
+    };
+    switch (msg) {
+        case WM_TIMER:
+            if (wParam == kCcTimerId) {
+                // Fade in, then keep repainting at a calm rate for live values.
+                static double lastRepaint = 0.0;
+                const double now = NowSeconds();
+                const bool fading = g_ccAlpha < 1.0f;
+                if (fading) {
+                    g_ccAlpha = Clamp(static_cast<float>((now - g_ccShownAt) / 0.14), 0.0f, 1.0f);
+                }
+                if (fading || now - lastRepaint > 0.25) {
+                    lastRepaint = now;
+                    CcRender();
+                }
+                // Close on a click anywhere else; the bar and the island handle
+                // their own clicks, so a click there may toggle the panel itself.
+                const bool pressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) ||
+                                     (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+                if (pressed && now - g_ccShownAt > 0.2) {
+                    POINT pt = {};
+                    GetCursorPos(&pt);
+                    if (!PtInRect(&g_ccScreenRect, pt) && !CcCursorInWindow(g_topBarHwnd, pt) &&
+                        !CcCursorInWindow(g_hwnd, pt)) {
+                        CcHide();
+                    }
+                }
+                return 0;
+            }
+            break;
+        case WM_ACTIVATE:
+            if (LOWORD(wParam) == WA_INACTIVE && NowSeconds() - g_ccShownAt > 0.3) {
+                POINT pt = {};
+                GetCursorPos(&pt);
+                if (!CcCursorInWindow(g_topBarHwnd, pt) && !CcCursorInWindow(g_hwnd, pt)) {
+                    CcHide();
+                }
+            }
+            return 0;
+        case WM_KEYDOWN:
+            if (wParam == VK_ESCAPE) {
+                CcHide();
+                return 0;
+            }
+            break;
+        case WM_MOUSEMOVE: {
+            float x, y;
+            dip(lParam, &x, &y);
+            if (g_ccDrag != kCcHitNone) {
+                CcApplySlider(g_ccDrag, x);
+                CcRender();
+                return 0;
+            }
+            const int hit = CcHitTest(x, y);
+            if (hit != g_ccHover) {
+                g_ccHover = hit;
+                TRACKMOUSEEVENT tme = {sizeof(tme), TME_LEAVE, hwnd, 0};
+                TrackMouseEvent(&tme);
+                CcRender();
+            }
+            return 0;
+        }
+        case WM_MOUSELEAVE:
+            if (g_ccHover != kCcHitNone) {
+                g_ccHover = kCcHitNone;
+                CcRender();
+            }
+            return 0;
+        case WM_LBUTTONDOWN: {
+            float x, y;
+            dip(lParam, &x, &y);
+            const int hit = CcHitTest(x, y);
+            const CcStatus s = CcGetStatus();
+            const bool brightnessOk = !s.brightnessKnown || s.brightnessSupported;
+            if (hit == kCcHitVolume || (hit == kCcHitBrightness && brightnessOk)) {
+                g_ccDrag = hit;
+                SetCapture(hwnd);
+                CcApplySlider(hit, x);
+                CcRender();
+            }
+            return 0;
+        }
+        case WM_LBUTTONUP: {
+            float x, y;
+            dip(lParam, &x, &y);
+            if (g_ccDrag != kCcHitNone) {
+                g_ccDrag = kCcHitNone;
+                ReleaseCapture();
+                CcRender();
+                return 0;
+            }
+            CcActivate(CcHitTest(x, y));
+            if (CcIsOpen()) CcRender();
+            return 0;
+        }
+        case WM_MOUSEWHEEL: {
+            if (g_ccMode.load() != kCcModeFull) {
+                return 0;
+            }
+            // Wheel over the panel nudges the volume, like the media keys would.
+            float level = 0.0f;
+            bool muted = false;
+            if (CcGetVolume(&level, &muted)) {
+                const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+                CcSetVolume(level + (delta > 0 ? 0.04f : -0.04f));
+                CcRender();
+            }
+            return 0;
+        }
+        case WM_CAPTURECHANGED:
+            g_ccDrag = kCcHitNone;
+            return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+// ── Notch cards: Notes, Pomodoro, Widgets ────────────────────────────────────
+//
+// Layout constants are shared by the renderer (which paints the cards in the
+// expanded island's content space) and by OverlayWndProc (which hit-tests in
+// that same space through MediaContentFromClient), so they cannot drift apart.
+
+void TriggerNudge();      // defined further down
+void TopBarInvalidate();  // defined with the top bar below
+void StickyUpdate(bool force);
+
+namespace NotchCard {
+    constexpr float kPadX = 24.0f;
+    constexpr float kRightInset = 30.0f;  // room for the pagination dots
+
+    inline D2D1_RECT_F NotesNewButton(float w) { return D2D1::RectF(w - 120.0f, 12.0f, w - 36.0f, 34.0f); }
+    inline D2D1_RECT_F NotesPrev(float w) { return D2D1::RectF(w - 178.0f, 12.0f, w - 154.0f, 34.0f); }
+    inline D2D1_RECT_F NotesNext(float w) { return D2D1::RectF(w - 150.0f, 12.0f, w - 126.0f, 34.0f); }
+    constexpr int kNotesPerPage = 3;
+    inline D2D1_RECT_F NotesRow(int i, float w) {
+        return D2D1::RectF(20.0f, 44.0f + i * 44.0f, w - kRightInset, 82.0f + i * 44.0f);
+    }
+    inline D2D1_RECT_F NotesPinButton(const D2D1_RECT_F& row) {
+        return D2D1::RectF(row.right - 66.0f, row.top + 5.0f, row.right - 38.0f, row.bottom - 5.0f);
+    }
+    inline D2D1_RECT_F NotesDeleteButton(const D2D1_RECT_F& row) {
+        return D2D1::RectF(row.right - 34.0f, row.top + 5.0f, row.right - 6.0f, row.bottom - 5.0f);
+    }
+
+    constexpr float kPomoButtonsY = 140.0f;
+    constexpr float kPomoButtonSpacing = 60.0f;
+    constexpr float kPomoButtonRadius = 18.0f;
+    inline float PomoCenterX(float w) { return (w - 10.0f) * 0.5f; }
+
+    inline D2D1_RECT_F WidgetChip(int i, float w) {
+        const float colW = (w - 20.0f - kRightInset - 8.0f) * 0.5f;
+        const float x = 20.0f + (i % 2) * (colW + 8.0f);
+        const float y = 42.0f + (i / 2) * 34.0f;
+        return D2D1::RectF(x, y, x + colW, y + 28.0f);
+    }
+}
+
+bool NotchPtIn(const D2D1_RECT_F& r, float x, float y) {
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+// ── Notes model (render thread only) ─────────────────────────────────────────
+
+std::vector<std::wstring> g_notes;
+int g_pinnedNote = -1;
+int g_notesPage = 0;
+bool g_notesLoaded = false;
+constexpr wchar_t kNoteSeparator = L'\x1E';
+
+void NotesLoad() {
+    if (g_notesLoaded) {
+        return;
+    }
+    g_notesLoaded = true;
+    std::vector<wchar_t> buffer(65536, L'\0');
+    Wh_GetStringValue(L"Notes", buffer.data(), buffer.size());
+    buffer.back() = L'\0';
+    const std::wstring all = buffer.data();
+    size_t start = 0;
+    while (start <= all.size()) {
+        const size_t end = all.find(kNoteSeparator, start);
+        const std::wstring note = all.substr(start, end == std::wstring::npos ? std::wstring::npos : end - start);
+        if (!note.empty()) {
+            g_notes.push_back(note);
+        }
+        if (end == std::wstring::npos) break;
+        start = end + 1;
+    }
+    g_pinnedNote = Wh_GetIntValue(L"PinnedNote", -1);
+    if (g_pinnedNote < 0 || g_pinnedNote >= static_cast<int>(g_notes.size())) {
+        g_pinnedNote = -1;
+    }
+}
+
+void NotesRefreshSurfaces() {
+    g_layoutDirty = true;
+    StickyUpdate(true);
+    TopBarInvalidate();
+}
+
+void NotesSave() {
+    std::wstring all;
+    for (size_t i = 0; i < g_notes.size(); ++i) {
+        if (i) all += kNoteSeparator;
+        all += g_notes[i];
+    }
+    if (all.size() > 60000) {
+        all.resize(60000);
+    }
+    Wh_SetStringValue(L"Notes", all.c_str());
+    Wh_SetIntValue(L"PinnedNote", g_pinnedNote);
+}
+
+// Files dropped on the island are kept like notes, by path.
+void FileTraySave() {
+    std::wstring all;
+    {
+        std::lock_guard lock(g_stateMutex);
+        for (size_t i = 0; i < g_state.fileTrayItems.size(); ++i) {
+            if (i) all += kNoteSeparator;
+            all += g_state.fileTrayItems[i].path;
+        }
+    }
+    Wh_SetStringValue(L"TrayFiles", all.c_str());
+}
+
+std::wstring NoteFirstLine(const std::wstring& text, size_t maxChars) {
+    size_t begin = text.find_first_not_of(L" \t\r\n");
+    if (begin == std::wstring::npos) return L"";
+    size_t end = text.find_first_of(L"\r\n", begin);
+    std::wstring line = text.substr(begin, end == std::wstring::npos ? std::wstring::npos : end - begin);
+    if (line.size() > maxChars) {
+        line.resize(maxChars);
+        line += L"…";
+    }
+    return line;
+}
+
+bool NotesHasPinned() {
+    NotesLoad();
+    return g_settings.notesModule && g_pinnedNote >= 0 && g_pinnedNote < static_cast<int>(g_notes.size());
+}
+
+void NotesTogglePin(int index) {
+    if (index < 0 || index >= static_cast<int>(g_notes.size())) return;
+    g_pinnedNote = (g_pinnedNote == index) ? -1 : index;
+    NotesSave();
+    NotesRefreshSurfaces();
+}
+
+void NotesDelete(int index) {
+    if (index < 0 || index >= static_cast<int>(g_notes.size())) return;
+    g_notes.erase(g_notes.begin() + index);
+    if (g_pinnedNote == index) g_pinnedNote = -1;
+    else if (g_pinnedNote > index) --g_pinnedNote;
+    const int pages = std::max(1, (static_cast<int>(g_notes.size()) + NotchCard::kNotesPerPage - 1) / NotchCard::kNotesPerPage);
+    g_notesPage = ClampInt(g_notesPage, 0, pages - 1);
+    NotesSave();
+    NotesRefreshSurfaces();
+}
+
+// index < 0 adds a note; saving an existing note as empty deletes it.
+int NotesUpsert(int index, const std::wstring& text, bool pin) {
+    const bool empty = text.find_first_not_of(L" \t\r\n") == std::wstring::npos;
+    if (index < 0 || index >= static_cast<int>(g_notes.size())) {
+        if (empty) return -1;
+        g_notes.push_back(text);
+        index = static_cast<int>(g_notes.size()) - 1;
+    } else if (empty) {
+        NotesDelete(index);
+        return -1;
+    } else {
+        g_notes[index] = text;
+    }
+    if (pin) g_pinnedNote = index;
+    NotesSave();
+    NotesRefreshSurfaces();
+    return index;
+}
+
+// ── Pomodoro (render thread only) ────────────────────────────────────────────
+
+enum class PomoPhase { Focus, Break };
+struct PomoState {
+    PomoPhase phase = PomoPhase::Focus;
+    bool running = false;
+    double endAt = 0.0;
+    double remaining = -1.0;  // -1: not initialised yet
+    double total = 0.0;
+    double flashUntil = 0.0;
+    std::wstring flashText;
+    int completedFocus = 0;
+};
+PomoState g_pomo;
+
+double PomoPhaseSeconds(PomoPhase phase) {
+    const int minutes = phase == PomoPhase::Focus ? g_settings.pomodoroFocusMinutes : g_settings.pomodoroBreakMinutes;
+    return ClampInt(minutes, 1, 180) * 60.0;
+}
+
+void PomoEnsureInit() {
+    if (g_pomo.remaining < 0.0) {
+        g_pomo.total = PomoPhaseSeconds(g_pomo.phase);
+        g_pomo.remaining = g_pomo.total;
+    }
+}
+
+double PomoRemaining() {
+    PomoEnsureInit();
+    return g_pomo.running ? std::max(0.0, g_pomo.endAt - NowSeconds()) : g_pomo.remaining;
+}
+
+float PomoProgress() {
+    PomoEnsureInit();
+    return g_pomo.total > 0.0 ? Clamp(static_cast<float>(1.0 - PomoRemaining() / g_pomo.total), 0.0f, 1.0f) : 0.0f;
+}
+
+bool PomoFlashing() { return NowSeconds() < g_pomo.flashUntil; }
+
+// Started (running or paused part-way), or showing its "finished" message.
+bool PomoActive() {
+    if (!g_settings.pomodoroModule) return false;
+    PomoEnsureInit();
+    return g_pomo.running || g_pomo.remaining < g_pomo.total - 0.5 || PomoFlashing();
+}
+
+std::wstring PomoClockText() {
+    const int seconds = static_cast<int>(std::ceil(PomoRemaining()));
+    wchar_t buf[16] = {};
+    swprintf_s(buf, L"%d:%02d", seconds / 60, seconds % 60);
+    return buf;
+}
+
+void PomoToggle() {
+    PomoEnsureInit();
+    if (g_pomo.running) {
+        g_pomo.remaining = PomoRemaining();
+        g_pomo.running = false;
+    } else {
+        if (g_pomo.remaining <= 0.5) g_pomo.remaining = g_pomo.total;
+        g_pomo.endAt = NowSeconds() + g_pomo.remaining;
+        g_pomo.running = true;
+    }
+    g_pomo.flashUntil = 0.0;
+    g_layoutDirty = true;
+    TopBarInvalidate();
+}
+
+void PomoSetPhase(PomoPhase phase, bool run) {
+    g_pomo.phase = phase;
+    g_pomo.total = PomoPhaseSeconds(phase);
+    g_pomo.remaining = g_pomo.total;
+    g_pomo.running = run;
+    g_pomo.endAt = NowSeconds() + g_pomo.total;
+    g_layoutDirty = true;
+    TopBarInvalidate();
+}
+
+void PomoReset() {
+    g_pomo.flashUntil = 0.0;
+    PomoSetPhase(PomoPhase::Focus, false);
+}
+
+void PomoSkip() {
+    PomoEnsureInit();
+    g_pomo.flashUntil = 0.0;
+    PomoSetPhase(g_pomo.phase == PomoPhase::Focus ? PomoPhase::Break : PomoPhase::Focus, g_pomo.running);
+}
+
+void PomoNotify(const wchar_t* title, const wchar_t* body) {
+    {
+        std::lock_guard lock(g_stateMutex);
+        g_state.notification = NotificationSnapshot{};
+        g_state.notification.active = true;
+        g_state.notification.app = L"Pomodoro";
+        g_state.notification.title = title;
+        g_state.notification.body = body;
+        g_state.notification.expiresAt = NowSeconds() + 6.0;
+    }
+    TriggerNudge();
+    MessageBeep(MB_ICONASTERISK);
+}
+
+void PomoTick() {
+    if (!g_settings.pomodoroModule) return;
+    PomoEnsureInit();
+    if (g_pomo.running && NowSeconds() >= g_pomo.endAt) {
+        if (g_pomo.phase == PomoPhase::Focus) {
+            ++g_pomo.completedFocus;
+            g_pomo.flashText = L"¡Descanso!";
+            PomoNotify(L"¡Pomodoro completado!", L"Tómate un descanso");
+            PomoSetPhase(PomoPhase::Break, true);  // the break starts on its own
+        } else {
+            g_pomo.flashText = L"¡A trabajar!";
+            PomoNotify(L"Descanso terminado", L"Pulsa play para el siguiente pomodoro");
+            PomoSetPhase(PomoPhase::Focus, false);
+        }
+        g_pomo.flashUntil = NowSeconds() + 8.0;
+    }
+
+    // Repaint the island once per displayed second while the timer shows.
+    static int lastSecond = -1;
+    const int second = static_cast<int>(std::ceil(PomoRemaining()));
+    if (PomoActive() && second != lastSecond) {
+        lastSecond = second;
+        g_layoutDirty = true;
+    }
+}
+
+// ── Collapsed pill follows the selected card ─────────────────────────────────
+
+// True when the selected card is something other than the music card, so the
+// collapsed pill shows that card's compact strip instead of the song.
+bool SelectedCardIsNotMedia() {
+    const int selected = g_idleTab.load(std::memory_order_relaxed);
+    if (selected == kTabPrimary) return false;
+    const std::vector<int> order = TabOrder(g_settings, true);
+    return std::find(order.begin(), order.end(), selected) != order.end();
+}
+
+// Text the collapsed strip shows in place of the clock for the selected card.
+std::wstring CollapsedCardText(const std::wstring& clock) {
+    const int selected = g_idleTab.load(std::memory_order_relaxed);
+    if (selected == kTabPomodoro && PomoActive()) {
+        return std::wstring(L"\u23F1 ") + (PomoFlashing() ? g_pomo.flashText : PomoClockText());
+    }
+    if (selected == kTabNotes && NotesHasPinned()) {
+        return L"\U0001F4CC " + NoteFirstLine(g_notes[g_pinnedNote], 22);
+    }
+    if (selected == kTabClock && TimeCardView(g_settings) == kTimeViewCalendar) {
+        SYSTEMTIME local = {};
+        GetLocalTime(&local);
+        wchar_t date[64] = {};
+        if (GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, 0, &local, L"ddd d MMM", date, ARRAYSIZE(date), nullptr) > 0) {
+            return clock + L" \u00B7 " + date;
+        }
+    }
+    return clock;
+}
+
+// ── Widget toggles (from the notch's Widgets card) ───────────────────────────
+
+void WidgetToggle(int i) {
+    if (i < 0 || i >= static_cast<int>(ARRAYSIZE(kWidgetDefs))) return;
+    const bool current = g_settings.*(kWidgetDefs[i].field);
+    Wh_SetIntValue(kWidgetDefs[i].key, current ? 0 : 1);
+    LoadSettings();
+    g_layoutDirty = true;
+    StickyUpdate(true);
+    TopBarInvalidate();
+}
+
+// ── Layered surface helper (sticky note) ─────────────────────────────────────
+
+struct LayeredSurface {
+    HDC dc = nullptr;
+    HBITMAP dib = nullptr;
+    HGDIOBJ old = nullptr;
+    int w = 0, h = 0;
+
+    bool Ensure(int width, int height) {
+        if (!dc) {
+            HDC screen = GetDC(nullptr);
+            dc = CreateCompatibleDC(screen);
+            ReleaseDC(nullptr, screen);
+            if (!dc) return false;
+        }
+        if (dib && width == w && height == h) return true;
+        if (old) SelectObject(dc, old);
+        if (dib) DeleteObject(dib);
+        old = nullptr;
+        BITMAPINFO bi = {};
+        bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bi.bmiHeader.biWidth = width;
+        bi.bmiHeader.biHeight = -height;
+        bi.bmiHeader.biPlanes = 1;
+        bi.bmiHeader.biBitCount = 32;
+        bi.bmiHeader.biCompression = BI_RGB;
+        void* bits = nullptr;
+        dib = CreateDIBSection(dc, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+        if (!dib) return false;
+        old = SelectObject(dc, dib);
+        w = width;
+        h = height;
+        return true;
+    }
+
+    void Release() {
+        if (dc && old) SelectObject(dc, old);
+        if (dib) DeleteObject(dib);
+        if (dc) DeleteDC(dc);
+        dc = nullptr;
+        dib = nullptr;
+        old = nullptr;
+        w = h = 0;
+    }
+};
+
+// ── Note editor popup ────────────────────────────────────────────────────────
+
+constexpr wchar_t kNoteEditorClass[] = L"Windhawk.DynamicIslandNoteEditor";
+enum { kNeDelete, kNePin, kNeCancel, kNeSave, kNeButtonCount };
+HWND g_noteEditorHwnd = nullptr;
+HWND g_noteEditHwnd = nullptr;
+int g_noteEditorIndex = -1;
+bool g_noteEditorPin = false;
+float g_noteEditorScale = 1.0f;
+int g_noteEditorHover = -1;
+bool g_noteEditorClosing = false;
+double g_noteEditorShownAt = 0.0;
+HFONT g_noteEditorFont = nullptr;
+HFONT g_noteEditorBoldFont = nullptr;
+HBRUSH g_noteEditBrush = nullptr;
+WNDPROC g_noteEditOrigProc = nullptr;
+
+COLORREF NoteColor(const D2D1_COLOR_F& c, float lighten = 0.0f) {
+    auto ch = [lighten](float v) {
+        v += (1.0f - v) * lighten;
+        return static_cast<BYTE>(std::lround(Clamp(v, 0.0f, 1.0f) * 255.0f));
+    };
+    return RGB(ch(c.r), ch(c.g), ch(c.b));
+}
+
+int NoteEditorPx(float dip) { return static_cast<int>(std::lround(dip * g_noteEditorScale)); }
+
+RECT NoteEditorButton(int i, int w, int h) {
+    const int bw = NoteEditorPx(84.0f), bh = NoteEditorPx(28.0f), m = NoteEditorPx(12.0f), gap = NoteEditorPx(8.0f);
+    const int top = h - m - bh;
+    switch (i) {
+        case kNeDelete: return {m, top, m + bw, top + bh};
+        case kNePin: return {m + bw + gap, top, m + bw * 2 + gap, top + bh};
+        case kNeCancel: return {w - m - bw * 2 - gap, top, w - m - bw - gap, top + bh};
+        default: return {w - m - bw, top, w - m, top + bh};
+    }
+}
+
+void NoteEditorClose(bool save) {
+    if (!g_noteEditorHwnd || !IsWindowVisible(g_noteEditorHwnd) || g_noteEditorClosing) return;
+    g_noteEditorClosing = true;
+    if (save && g_noteEditHwnd) {
+        const int len = GetWindowTextLengthW(g_noteEditHwnd);
+        std::wstring text(static_cast<size_t>(len) + 1, L'\0');
+        GetWindowTextW(g_noteEditHwnd, text.data(), len + 1);
+        text.resize(static_cast<size_t>(len));
+        NotesUpsert(g_noteEditorIndex, text, g_noteEditorPin);
+        if (!g_noteEditorPin && g_noteEditorIndex >= 0 && g_pinnedNote == g_noteEditorIndex) {
+            g_pinnedNote = -1;
+            NotesSave();
+            NotesRefreshSurfaces();
+        }
+    }
+    ShowWindow(g_noteEditorHwnd, SW_HIDE);
+    g_noteEditorClosing = false;
+}
+
+LRESULT CALLBACK NoteEditSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    const bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+    if (msg == WM_KEYDOWN) {
+        if (wParam == VK_ESCAPE) {
+            NoteEditorClose(false);
+            return 0;
+        }
+        if (wParam == VK_RETURN && ctrl) {
+            NoteEditorClose(true);
+            return 0;
+        }
+        if (wParam == 'A' && ctrl) {
+            SendMessageW(hwnd, EM_SETSEL, 0, -1);
+            return 0;
+        }
+    }
+    if (msg == WM_CHAR && (wParam == 0x1B || (ctrl && (wParam == 0x0A || wParam == 0x01)))) {
+        return 0;  // swallow the Esc / Ctrl+Enter / Ctrl+A characters (no beep)
+    }
+    return CallWindowProcW(g_noteEditOrigProc, hwnd, msg, wParam, lParam);
+}
+
+void NoteEditorPaint(HWND hwnd) {
+    PAINTSTRUCT ps = {};
+    HDC dc = BeginPaint(hwnd, &ps);
+    RECT rc = {};
+    GetClientRect(hwnd, &rc);
+    const int w = rc.right, h = rc.bottom;
+    HDC mem = CreateCompatibleDC(dc);
+    HBITMAP bmp = CreateCompatibleBitmap(dc, w, h);
+    HGDIOBJ oldBmp = SelectObject(mem, bmp);
+
+    HBRUSH bg = CreateSolidBrush(NoteColor(g_settings.pillBgColor));
+    FillRect(mem, &rc, bg);
+    DeleteObject(bg);
+    SetBkMode(mem, TRANSPARENT);
+
+    HGDIOBJ oldFont = SelectObject(mem, g_noteEditorBoldFont);
+    SetTextColor(mem, NoteColor(g_settings.textPrimaryColor));
+    RECT title = {NoteEditorPx(14.0f), NoteEditorPx(8.0f), w - NoteEditorPx(14.0f), NoteEditorPx(32.0f)};
+    const wchar_t* titleText = g_noteEditorIndex < 0 ? L"Nueva nota" : L"Nota";
+    DrawTextW(mem, titleText, -1, &title, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    SelectObject(mem, g_noteEditorFont);
+    SetTextColor(mem, NoteColor(g_settings.textSecondaryColor));
+    DrawTextW(mem, L"Ctrl+Intro guarda · Esc cancela", -1, &title, DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
+
+    HGDIOBJ oldPen = SelectObject(mem, GetStockObject(NULL_PEN));
+    D2D1_COLOR_F accent = g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent : GetSystemAccentColor();
+    const wchar_t* labels[kNeButtonCount] = {L"Eliminar", g_noteEditorPin ? L"Desfijar" : L"Fijar", L"Cancelar", L"Guardar"};
+    for (int i = 0; i < kNeButtonCount; ++i) {
+        if (i == kNeDelete && g_noteEditorIndex < 0) continue;
+        const RECT r = NoteEditorButton(i, w, h);
+        const bool primary = i == kNeSave || (i == kNePin && g_noteEditorPin);
+        HBRUSH b = CreateSolidBrush(primary ? NoteColor(accent, g_noteEditorHover == i ? 0.15f : 0.0f)
+                                            : NoteColor(g_settings.pillBgColor, g_noteEditorHover == i ? 0.20f : 0.10f));
+        HGDIOBJ oldBrush = SelectObject(mem, b);
+        const int radius = NoteEditorPx(10.0f);
+        RoundRect(mem, r.left, r.top, r.right, r.bottom, radius, radius);
+        SelectObject(mem, oldBrush);
+        DeleteObject(b);
+        RECT tr = r;
+        SetTextColor(mem, i == kNeDelete ? RGB(255, 120, 110) : NoteColor(g_settings.textPrimaryColor));
+        DrawTextW(mem, labels[i], -1, &tr, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    }
+    SelectObject(mem, oldPen);
+    SelectObject(mem, oldFont);
+
+    BitBlt(dc, 0, 0, w, h, mem, 0, 0, SRCCOPY);
+    SelectObject(mem, oldBmp);
+    DeleteObject(bmp);
+    DeleteDC(mem);
+    EndPaint(hwnd, &ps);
+}
+
+int NoteEditorHit(HWND hwnd, POINT pt) {
+    RECT rc = {};
+    GetClientRect(hwnd, &rc);
+    for (int i = 0; i < kNeButtonCount; ++i) {
+        if (i == kNeDelete && g_noteEditorIndex < 0) continue;
+        const RECT r = NoteEditorButton(i, rc.right, rc.bottom);
+        if (PtInRect(&r, pt)) return i;
+    }
+    return -1;
+}
+
+LRESULT CALLBACK NoteEditorWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_PAINT:
+            NoteEditorPaint(hwnd);
+            return 0;
+        case WM_ERASEBKGND:
+            return 1;
+        case WM_CTLCOLOREDIT: {
+            HDC dc = reinterpret_cast<HDC>(wParam);
+            SetTextColor(dc, NoteColor(g_settings.textPrimaryColor));
+            SetBkColor(dc, NoteColor(g_settings.pillBgColor, 0.07f));
+            if (!g_noteEditBrush) g_noteEditBrush = CreateSolidBrush(NoteColor(g_settings.pillBgColor, 0.07f));
+            return reinterpret_cast<LRESULT>(g_noteEditBrush);
+        }
+        case WM_MOUSEMOVE: {
+            const int hit = NoteEditorHit(hwnd, {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)});
+            if (hit != g_noteEditorHover) {
+                g_noteEditorHover = hit;
+                TRACKMOUSEEVENT tme = {sizeof(tme), TME_LEAVE, hwnd, 0};
+                TrackMouseEvent(&tme);
+                InvalidateRect(hwnd, nullptr, FALSE);
+            }
+            return 0;
+        }
+        case WM_MOUSELEAVE:
+            g_noteEditorHover = -1;
+            InvalidateRect(hwnd, nullptr, FALSE);
+            return 0;
+        case WM_LBUTTONUP: {
+            switch (NoteEditorHit(hwnd, {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)})) {
+                case kNeDelete: {
+                    const int index = g_noteEditorIndex;
+                    NoteEditorClose(false);
+                    NotesDelete(index);
+                    break;
+                }
+                case kNePin:
+                    g_noteEditorPin = !g_noteEditorPin;
+                    InvalidateRect(hwnd, nullptr, FALSE);
+                    SetFocus(g_noteEditHwnd);
+                    break;
+                case kNeCancel:
+                    NoteEditorClose(false);
+                    break;
+                case kNeSave:
+                    NoteEditorClose(true);
+                    break;
+            }
+            return 0;
+        }
+        case WM_ACTIVATE:
+            if (LOWORD(wParam) == WA_INACTIVE && NowSeconds() - g_noteEditorShownAt > 0.3) {
+                NoteEditorClose(true);  // clicking away keeps what was typed
+            } else if (LOWORD(wParam) != WA_INACTIVE && g_noteEditHwnd) {
+                SetFocus(g_noteEditHwnd);
+            }
+            return 0;
+        case WM_CLOSE:
+            NoteEditorClose(false);
+            return 0;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+bool NoteEditorEnsure() {
+    if (g_noteEditorHwnd) return true;
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(wc);
+    wc.lpfnWndProc = NoteEditorWndProc;
+    wc.hInstance = GetModuleHandleW(nullptr);
+    wc.lpszClassName = kNoteEditorClass;
+    wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    RegisterClassExW(&wc);
+    g_noteEditorHwnd = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, kNoteEditorClass, L"Nota",
+                                       WS_POPUP | WS_CLIPCHILDREN, 0, 0, 100, 100, nullptr, nullptr,
+                                       wc.hInstance, nullptr);
+    if (!g_noteEditorHwnd) return false;
+    const int cornerPreference = 2;  // DWMWCP_ROUND
+    DwmSetWindowAttribute(g_noteEditorHwnd, 33 /* DWMWA_WINDOW_CORNER_PREFERENCE */, &cornerPreference,
+                          sizeof(cornerPreference));
+    g_noteEditHwnd = CreateWindowExW(0, L"EDIT", L"",
+                                     WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
+                                     0, 0, 10, 10, g_noteEditorHwnd, nullptr, wc.hInstance, nullptr);
+    if (g_noteEditHwnd) {
+        g_noteEditOrigProc = reinterpret_cast<WNDPROC>(
+            SetWindowLongPtrW(g_noteEditHwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(NoteEditSubclassProc)));
+        SendMessageW(g_noteEditHwnd, EM_SETLIMITTEXT, 8000, 0);
+    }
+    return true;
+}
+
+void NoteEditorDestroy() {
+    if (g_noteEditorHwnd) DestroyWindow(g_noteEditorHwnd);
+    g_noteEditorHwnd = nullptr;
+    g_noteEditHwnd = nullptr;
+    UnregisterClassW(kNoteEditorClass, GetModuleHandleW(nullptr));
+    if (g_noteEditorFont) DeleteObject(g_noteEditorFont);
+    if (g_noteEditorBoldFont) DeleteObject(g_noteEditorBoldFont);
+    if (g_noteEditBrush) DeleteObject(g_noteEditBrush);
+    g_noteEditorFont = g_noteEditorBoldFont = nullptr;
+    g_noteEditBrush = nullptr;
+}
+
+// align: 0 centred on x, 1 left edge at x, 2 right edge at x.
+void NoteEditorOpen(int index, HMONITOR monitor, int top, int x, int align) {
+    NotesLoad();
+    if (!NoteEditorEnsure()) return;
+    if (IsWindowVisible(g_noteEditorHwnd)) NoteEditorClose(true);
+    if (index >= static_cast<int>(g_notes.size())) index = -1;
+    g_noteEditorIndex = index;
+    g_noteEditorPin = index >= 0 && index == g_pinnedNote;
+    g_noteEditorHover = -1;
+
+    UINT dpi = 96;
+    {
+        UINT dx = 96, dy = 96;
+        using GetDpiForMonitor_t = HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*);
+        static auto pGetDpiForMonitor = reinterpret_cast<GetDpiForMonitor_t>(
+            reinterpret_cast<void*>(GetProcAddress(GetModuleHandleW(L"shcore.dll"), "GetDpiForMonitor")));
+        if (pGetDpiForMonitor && SUCCEEDED(pGetDpiForMonitor(monitor, 0, &dx, &dy)) && dy) dpi = dy;
+    }
+    g_noteEditorScale = dpi / 96.0f;
+
+    if (g_noteEditorFont) DeleteObject(g_noteEditorFont);
+    if (g_noteEditorBoldFont) DeleteObject(g_noteEditorBoldFont);
+    if (g_noteEditBrush) {
+        DeleteObject(g_noteEditBrush);
+        g_noteEditBrush = nullptr;  // colours may have changed
+    }
+    const wchar_t* family = g_settings.fontFamily.empty() ? L"Segoe UI Variable Text" : g_settings.fontFamily.c_str();
+    g_noteEditorFont = CreateFontW(-NoteEditorPx(14.0f), 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                                   OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, family);
+    g_noteEditorBoldFont = CreateFontW(-NoteEditorPx(15.0f), 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                                       OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, family);
+
+    const int w = NoteEditorPx(360.0f), h = NoteEditorPx(250.0f);
+    MONITORINFO mi = {sizeof(mi)};
+    GetMonitorInfoW(monitor, &mi);
+    int left = align == 0 ? x - w / 2 : (align == 1 ? x : x - w);
+    left = ClampInt(left, static_cast<int>(mi.rcWork.left) + 8, static_cast<int>(mi.rcWork.right) - w - 8);
+    const int y = ClampInt(top, static_cast<int>(mi.rcMonitor.top), static_cast<int>(mi.rcWork.bottom) - h - 8);
+
+    const COLORREF border = NoteColor(g_settings.pillBgColor, 0.12f);
+    DwmSetWindowAttribute(g_noteEditorHwnd, 34 /* DWMWA_BORDER_COLOR */, &border, sizeof(border));
+
+    if (g_noteEditHwnd) {
+        SendMessageW(g_noteEditHwnd, WM_SETFONT, reinterpret_cast<WPARAM>(g_noteEditorFont), FALSE);
+        const int m = NoteEditorPx(12.0f);
+        MoveWindow(g_noteEditHwnd, m, NoteEditorPx(38.0f), w - m * 2, h - NoteEditorPx(38.0f) - NoteEditorPx(52.0f), FALSE);
+        SendMessageW(g_noteEditHwnd, EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN,
+                     MAKELPARAM(NoteEditorPx(6.0f), NoteEditorPx(6.0f)));
+        SetWindowTextW(g_noteEditHwnd, index >= 0 ? g_notes[index].c_str() : L"");
+    }
+
+    g_noteEditorShownAt = NowSeconds();
+    SetWindowPos(g_noteEditorHwnd, HWND_TOPMOST, left, y, w, h, SWP_SHOWWINDOW);
+    SetForegroundWindow(g_noteEditorHwnd);
+    if (g_noteEditHwnd) {
+        SetFocus(g_noteEditHwnd);
+        const int len = GetWindowTextLengthW(g_noteEditHwnd);
+        SendMessageW(g_noteEditHwnd, EM_SETSEL, len, len);
+    }
+    InvalidateRect(g_noteEditorHwnd, nullptr, TRUE);
+}
+
+void NoteEditorOpenFromNotch(int index) {
+    if (!g_hwnd) return;
+    RECT r = {};
+    GetWindowRect(g_hwnd, &r);
+    NoteEditorOpen(index, MonitorFromWindow(g_hwnd, MONITOR_DEFAULTTONEAREST),
+                   r.bottom - static_cast<int>(std::lround(kRenderPadY)) + 8, (r.left + r.right) / 2, 0);
+}
+
+// ── Pinned-note sticky (right side of the screen, pill mode) ─────────────────
+
+constexpr wchar_t kStickyClass[] = L"Windhawk.DynamicIslandStickyNote";
+constexpr float kStickyWidth = 230.0f;  // DIPs
+HWND g_stickyHwnd = nullptr;
+LayeredSurface g_stickySurface;
+ComPtr<IDWriteTextFormat> g_stickyFmt;
+float g_stickyScale = 1.0f;
+float g_stickyHeightDip = 0.0f;
+std::wstring g_stickySignature;
+
+D2D1_RECT_F StickyUnpinRect() { return D2D1::RectF(kStickyWidth - 34.0f, 6.0f, kStickyWidth - 8.0f, 30.0f); }
+
+void StickyRender(const RECT& screenRect) {
+    if (!CcEnsureResources()) return;
+    if (!g_stickyFmt && g_ccDw) {
+        const std::wstring family = g_settings.fontFamily.empty() ? L"Segoe UI Variable Text" : g_settings.fontFamily;
+        g_ccDw->CreateTextFormat(family.c_str(), nullptr, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
+                                 DWRITE_FONT_STRETCH_NORMAL, 12.5f, L"", g_stickyFmt.GetAddressOf());
+        if (g_stickyFmt) {
+            g_stickyFmt->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
+            DWRITE_TRIMMING trimming = {DWRITE_TRIMMING_GRANULARITY_WORD, 0, 0};
+            ComPtr<IDWriteInlineObject> ellipsis;
+            g_ccDw->CreateEllipsisTrimmingSign(g_stickyFmt.Get(), ellipsis.GetAddressOf());
+            g_stickyFmt->SetTrimming(&trimming, ellipsis.Get());
+        }
+    }
+    const int wPx = screenRect.right - screenRect.left, hPx = screenRect.bottom - screenRect.top;
+    if (!g_stickySurface.Ensure(wPx, hPx)) return;
+    RECT rc = {0, 0, wPx, hPx};
+    if (FAILED(g_ccRt->BindDC(g_stickySurface.dc, &rc))) return;
+    g_ccRt->SetDpi(96.0f * g_stickyScale, 96.0f * g_stickyScale);
+
+    const D2D1_COLOR_F text = g_settings.textPrimaryColor;
+    const D2D1_COLOR_F muted = g_settings.textSecondaryColor;
+    D2D1_COLOR_F accent = g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent : GetSystemAccentColor();
+    accent.a = 1.0f;
+    D2D1_COLOR_F bg = g_settings.pillBgColor;
+    bg.a = 0.94f;
+
+    g_ccRt->BeginDraw();
+    g_ccRt->Clear(D2D1::ColorF(0, 0, 0, 0));
+    const D2D1_RECT_F card = D2D1::RectF(0.5f, 0.5f, kStickyWidth - 0.5f, g_stickyHeightDip - 0.5f);
+    CcFill(card, 16.0f, bg);
+    g_ccBrush->SetColor(D2D1::ColorF(1, 1, 1, 0.10f));
+    g_ccRt->DrawRoundedRectangle(D2D1::RoundedRect(card, 16.0f, 16.0f), g_ccBrush.Get(), 1.0f);
+    CcFill(D2D1::RectF(14.0f, 12.0f, 18.0f, 26.0f), 2.0f, accent);
+    CcTextOut(L"Nota fijada", D2D1::RectF(26.0f, 8.0f, kStickyWidth - 40.0f, 30.0f), g_ccSubFmt.Get(), muted);
+    CcTextOut(L"", StickyUnpinRect(), g_ccSmallIconFmt.Get(), muted);  // unpin
+    if (g_stickyFmt && g_pinnedNote >= 0 && g_pinnedNote < static_cast<int>(g_notes.size())) {
+        const std::wstring& note = g_notes[g_pinnedNote];
+        g_ccBrush->SetColor(text);
+        g_ccRt->DrawTextW(note.c_str(), static_cast<UINT32>(note.size()), g_stickyFmt.Get(),
+                          D2D1::RectF(14.0f, 34.0f, kStickyWidth - 14.0f, g_stickyHeightDip - 12.0f), g_ccBrush.Get(),
+                          D2D1_DRAW_TEXT_OPTIONS_CLIP);
+    }
+    if (FAILED(g_ccRt->EndDraw())) {
+        g_ccRt.Reset();
+        return;
+    }
+    POINT src = {0, 0};
+    POINT dst = {screenRect.left, screenRect.top};
+    SIZE size = {wPx, hPx};
+    BLENDFUNCTION blend = {AC_SRC_OVER, 0, static_cast<BYTE>(Clamp(g_settings.pillOpacity, 0.35f, 1.0f) * 255.0f),
+                           AC_SRC_ALPHA};
+    UpdateLayeredWindow(g_stickyHwnd, nullptr, &dst, &size, g_stickySurface.dc, &src, 0, &blend, ULW_ALPHA);
+}
+
+void StickyUpdate(bool force) {
+    if (!g_stickyHwnd) return;
+    const bool want = NotesHasPinned() && !g_barModeActive.load() && !g_manuallyHidden.load() &&
+                      !IsForegroundFullscreen(g_hwnd);
+    if (!want) {
+        if (IsWindowVisible(g_stickyHwnd)) ShowWindow(g_stickyHwnd, SW_HIDE);
+        g_stickySignature.clear();
+        return;
+    }
+
+    const HMONITOR monitor = GetAnchorMonitor();
+    MONITORINFO mi = {sizeof(mi)};
+    GetMonitorInfoW(monitor, &mi);
+    UINT dpi = 96;
+    {
+        UINT dx = 96, dy = 96;
+        using GetDpiForMonitor_t = HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*);
+        static auto pGetDpiForMonitor = reinterpret_cast<GetDpiForMonitor_t>(
+            reinterpret_cast<void*>(GetProcAddress(GetModuleHandleW(L"shcore.dll"), "GetDpiForMonitor")));
+        if (pGetDpiForMonitor && SUCCEEDED(pGetDpiForMonitor(monitor, 0, &dx, &dy)) && dy) dpi = dy;
+    }
+
+    const std::wstring& note = g_notes[g_pinnedNote];
+    wchar_t sig[96] = {};
+    swprintf_s(sig, L"|%ld,%ld,%ld|%u|%zu", mi.rcWork.right, mi.rcWork.top, mi.rcWork.bottom, dpi, note.size());
+    const std::wstring signature = note + sig;
+    if (!force && signature == g_stickySignature && IsWindowVisible(g_stickyHwnd)) return;
+    g_stickySignature = signature;
+
+    g_stickyScale = dpi / 96.0f;
+    // Height follows the text, up to about six lines.
+    float textHeight = 18.0f;
+    if (CcEnsureResources()) {
+        StickyRender({0, 0, 0, 0});  // creates the text format if needed (no-op draw)
+        if (g_stickyFmt) {
+            ComPtr<IDWriteTextLayout> layout;
+            if (SUCCEEDED(g_ccDw->CreateTextLayout(note.c_str(), static_cast<UINT32>(note.size()), g_stickyFmt.Get(),
+                                                   kStickyWidth - 28.0f, 1000.0f, layout.GetAddressOf())) && layout) {
+                DWRITE_TEXT_METRICS metrics = {};
+                if (SUCCEEDED(layout->GetMetrics(&metrics))) textHeight = metrics.height;
+            }
+        }
+    }
+    g_stickyHeightDip = 34.0f + Clamp(textHeight, 18.0f, 100.0f) + 14.0f;
+
+    const int w = static_cast<int>(std::lround(kStickyWidth * g_stickyScale));
+    const int h = static_cast<int>(std::lround(g_stickyHeightDip * g_stickyScale));
+    const int margin = static_cast<int>(std::lround(16.0f * g_stickyScale));
+    const RECT r = {mi.rcWork.right - w - margin, mi.rcWork.top + margin, mi.rcWork.right - margin,
+                    mi.rcWork.top + margin + h};
+    SetWindowPos(g_stickyHwnd, HWND_TOPMOST, r.left, r.top, w, h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    StickyRender(r);
+}
+
+LRESULT CALLBACK StickyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_MOUSEACTIVATE:
+            return MA_NOACTIVATE;
+        case WM_LBUTTONUP: {
+            const float x = GET_X_LPARAM(lParam) / g_stickyScale;
+            const float y = GET_Y_LPARAM(lParam) / g_stickyScale;
+            if (NotchPtIn(StickyUnpinRect(), x, y)) {
+                NotesTogglePin(g_pinnedNote);
+            } else {
+                RECT r = {};
+                GetWindowRect(hwnd, &r);
+                NoteEditorOpen(g_pinnedNote, MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST),
+                               r.bottom + static_cast<int>(8 * g_stickyScale), r.right, 2);
+            }
+            return 0;
+        }
+        case WM_SETCURSOR:
+            SetCursor(LoadCursorW(nullptr, IDC_HAND));
+            return TRUE;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+void StickyCreate(HINSTANCE instance) {
+    WNDCLASSEXW wc = {};
+    wc.cbSize = sizeof(wc);
+    wc.lpfnWndProc = StickyWndProc;
+    wc.hInstance = instance;
+    wc.lpszClassName = kStickyClass;
+    RegisterClassExW(&wc);
+    g_stickyHwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, kStickyClass,
+                                   L"Nota fijada", WS_POPUP, 0, 0, 16, 16, nullptr, nullptr, instance, nullptr);
+}
+
+void StickyDestroy(HINSTANCE instance) {
+    if (g_stickyHwnd) DestroyWindow(g_stickyHwnd);
+    g_stickyHwnd = nullptr;
+    UnregisterClassW(kStickyClass, instance);
+    g_stickySurface.Release();
+    g_stickyFmt.Reset();
+}
+
+// ── Click handling for the notch cards (content space) ───────────────────────
+
+// Puts a file on the clipboard the way Explorer's Copy does, so it can be
+// pasted into a folder, a chat or a mail, and its path as text for editors.
+bool CopyFileToClipboard(HWND owner, const std::wstring& path) {
+    const size_t pathBytes = path.size() * sizeof(wchar_t);
+    // DROPFILES, then a double-null-terminated list of paths.
+    HGLOBAL drop = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, sizeof(DROPFILES) + pathBytes + 2 * sizeof(wchar_t));
+    if (!drop) return false;
+    auto* files = static_cast<DROPFILES*>(GlobalLock(drop));
+    files->pFiles = sizeof(DROPFILES);
+    files->fWide = TRUE;
+    memcpy(reinterpret_cast<BYTE*>(files) + sizeof(DROPFILES), path.c_str(), pathBytes);
+    GlobalUnlock(drop);
+
+    HGLOBAL text = GlobalAlloc(GMEM_MOVEABLE, pathBytes + sizeof(wchar_t));
+    if (text) {
+        memcpy(GlobalLock(text), path.c_str(), pathBytes + sizeof(wchar_t));
+        GlobalUnlock(text);
+    }
+    HGLOBAL effect = GlobalAlloc(GMEM_MOVEABLE, sizeof(DWORD));
+    if (effect) {
+        *static_cast<DWORD*>(GlobalLock(effect)) = DROPEFFECT_COPY;
+        GlobalUnlock(effect);
+    }
+    static const UINT kDropEffectFormat = RegisterClipboardFormatW(L"Preferred DropEffect");
+
+    if (!OpenClipboard(owner)) {
+        GlobalFree(drop);
+        if (text) GlobalFree(text);
+        if (effect) GlobalFree(effect);
+        return false;
+    }
+    EmptyClipboard();
+    // On success the clipboard owns the memory; on failure it is still ours.
+    const bool ok = SetClipboardData(CF_HDROP, drop) != nullptr;
+    if (!ok) GlobalFree(drop);
+    if (text && !SetClipboardData(CF_UNICODETEXT, text)) GlobalFree(text);
+    if (effect && !SetClipboardData(kDropEffectFormat, effect)) GlobalFree(effect);
+    CloseClipboard();
+    return ok;
+}
+
+void OpenPath(const std::wstring& path) {
+    SHELLEXECUTEINFOW sei = {sizeof(sei)};
+    sei.fMask = SEE_MASK_FLAG_NO_UI;
+    sei.lpFile = path.c_str();
+    sei.nShow = SW_SHOWNORMAL;
+    ShellExecuteExW(&sei);
+}
+
+// The notes card lists the files dropped on the island first (newest first),
+// then the notes, three rows a page. On a file row the first button copies the
+// file to the clipboard and the cross takes it off the list (the file itself
+// stays where it is); anywhere else opens it.
+void NotesHandleClick(HWND hwnd, const MediaContentPoint& cp) {
+    if (!cp.valid) return;
+    NotesLoad();
+    const float w = cp.width;
+    int fileCount = 0;
+    {
+        std::lock_guard lock(g_stateMutex);
+        fileCount = static_cast<int>(g_state.fileTrayItems.size());
+    }
+    const int noteCount = static_cast<int>(g_notes.size());
+    const int total = fileCount + noteCount;
+    const int pages = std::max(1, (total + NotchCard::kNotesPerPage - 1) / NotchCard::kNotesPerPage);
+    g_notesPage = ClampInt(g_notesPage, 0, pages - 1);
+    g_layoutDirty = true;
+
+    if (NotchPtIn(NotchCard::NotesNewButton(w), cp.x, cp.y)) {
+        NoteEditorOpenFromNotch(-1);
+        return;
+    }
+    if (pages > 1 && NotchPtIn(NotchCard::NotesPrev(w), cp.x, cp.y)) {
+        g_notesPage = (g_notesPage - 1 + pages) % pages;
+        return;
+    }
+    if (pages > 1 && NotchPtIn(NotchCard::NotesNext(w), cp.x, cp.y)) {
+        g_notesPage = (g_notesPage + 1) % pages;
+        return;
+    }
+    for (int i = 0; i < NotchCard::kNotesPerPage; ++i) {
+        const int entry = g_notesPage * NotchCard::kNotesPerPage + i;
+        if (entry >= total) break;
+        const D2D1_RECT_F row = NotchCard::NotesRow(i, w);
+        if (!NotchPtIn(row, cp.x, cp.y)) continue;
+        const bool firstButton = NotchPtIn(NotchCard::NotesPinButton(row), cp.x, cp.y);
+        const bool secondButton = NotchPtIn(NotchCard::NotesDeleteButton(row), cp.x, cp.y);
+        if (entry < fileCount) {
+            std::wstring path;
+            bool removed = false;
+            {
+                std::lock_guard lock(g_stateMutex);
+                const size_t index = g_state.fileTrayItems.size() - 1 - static_cast<size_t>(entry);
+                if (index < g_state.fileTrayItems.size()) {
+                    if (secondButton) {
+                        g_state.fileTrayItems.erase(g_state.fileTrayItems.begin() + index);
+                        removed = true;
+                    } else {
+                        path = g_state.fileTrayItems[index].path;
+                    }
+                }
+            }
+            if (removed) {
+                FileTraySave();
+            } else if (!path.empty()) {
+                if (firstButton) CopyFileToClipboard(hwnd, path);
+                else OpenPath(path);
+            }
+            return;
+        }
+        const int index = entry - fileCount;
+        if (firstButton) {
+            NotesTogglePin(index);
+        } else if (secondButton) {
+            NotesDelete(index);
+        } else {
+            NoteEditorOpenFromNotch(index);
+        }
+        return;
+    }
+}
+
+void PomodoroHandleClick(const MediaContentPoint& cp) {
+    if (!cp.valid) return;
+    const float cx = NotchCard::PomoCenterX(cp.width);
+    const float reach = NotchCard::kPomoButtonRadius + 6.0f;
+    for (int i = -1; i <= 1; ++i) {
+        const float bx = cx + i * NotchCard::kPomoButtonSpacing;
+        if (std::fabs(cp.x - bx) <= reach && std::fabs(cp.y - NotchCard::kPomoButtonsY) <= reach) {
+            if (i < 0) PomoReset();
+            else if (i == 0) PomoToggle();
+            else PomoSkip();
+            return;
+        }
+    }
+}
+
+void WidgetsHandleClick(const MediaContentPoint& cp) {
+    if (!cp.valid) return;
+    for (int i = 0; i < static_cast<int>(ARRAYSIZE(kWidgetDefs)); ++i) {
+        if (NotchPtIn(NotchCard::WidgetChip(i, cp.width), cp.x, cp.y)) {
+            WidgetToggle(i);
+            return;
+        }
+    }
+}
+
+// ── Top bar ──────────────────────────────────────────────────────────────────
+
+constexpr wchar_t kTopBarClass[] = L"Windhawk.DynamicIslandTopBar";
+constexpr UINT WM_APP_TOPBAR_CALLBACK = WM_APP + 0x460;
+constexpr UINT_PTR kTopBarTimerId = 0x7B01;
+constexpr UINT kTopBarTickMs = 300;
+// Ticks the wanted state must hold before the bar switches, so a maximize or
+// minimize animation, or a quick drag, does not make it flicker.
+constexpr int kTopBarSwitchTicks = 2;
+// Attempts per window at pushing a maximized window below the bar, so an app
+// that insists on covering the whole monitor cannot start a tug-of-war.
+constexpr int kTopBarMaxFixAttempts = 3;
+
+enum TopBarItemKind { kBarClock, kBarNetwork, kBarBluetooth, kBarVolume, kBarBattery, kBarControlCenter,
+                      kBarNote, kBarPomodoro, kBarWidget, kBarAlert, kBarApp, kBarSwitchApp, kBarMoreApps };
+struct TopBarItem {
+    TopBarItemKind kind;
+    RECT rect;
+    std::wstring glyph;
+    std::wstring label;
+    int tab = -1;  // kBarWidget: the notch card it drops down
+    int app = -1;  // kBarApp / kBarSwitchApp: index into g_topBarApps
+};
+
+// An app with windows open, as the dock would show it: one entry per
+// executable, its windows most recently used first.
+struct TopBarApp {
+    std::wstring key;  // lower-case executable path; Store apps get one per window
+    std::vector<HWND> windows;
+    HICON icon = nullptr;  // owned by g_topBarIcons
+};
+
+// Defined further down with the media and notification helpers.
+bool ProcessImageNameForPid(DWORD pid, std::wstring* imageName);
+HICON getWindowIcon(HWND hwnd);
+std::wstring ToLowerCopy(std::wstring value);
+
+bool g_topBarRegistered = false;
+HMONITOR g_topBarMonitor = nullptr;
+int g_topBarAppliedHeight = 0;
+int g_topBarSwitchStreak = 0;
+bool g_topBarHiddenForFullscreen = false;
+std::wstring g_topBarSignature;  // what was last painted, to repaint only on change
+int g_topBarHover = -1;
+HFONT g_topBarFont = nullptr;
+HFONT g_topBarIconFont = nullptr;
+int g_topBarFontPx = 0;
+std::wstring g_topBarFontFamily;
+std::unordered_map<HWND, int> g_topBarFixAttempts;
+std::vector<HWND> g_topBarHiddenForeignIslands;
+double g_barDropdownOpenedAt = 0.0;
+
+// Open apps, so they can be reached from the bar while the dock is hidden.
+std::vector<TopBarApp> g_topBarApps;  // dock order: first seen first
+std::unordered_map<HWND, std::wstring> g_topBarWindowKeys;
+std::unordered_map<std::wstring, HICON> g_topBarIcons;
+std::wstring g_topBarCurrentApp;  // key of the app in the foreground
+std::wstring g_topBarLastApp;     // key of the one used before it, for quick switching
+std::vector<std::wstring> g_topBarRecentApps;  // app keys, most recently used first
+HWND g_topBarLastForeground = nullptr;
+
+bool CcBarWantsStatus() { return g_barModeActive.load(); }
+
+void TopBarInvalidate() {
+    g_topBarSignature.clear();
+    if (g_topBarHwnd) InvalidateRect(g_topBarHwnd, nullptr, FALSE);
+}
+
+UINT TopBarMonitorDpi(HMONITOR monitor) {
+    UINT dpiX = 96, dpiY = 96;
+    using GetDpiForMonitor_t = HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*);
+    static auto pGetDpiForMonitor = reinterpret_cast<GetDpiForMonitor_t>(
+        reinterpret_cast<void*>(GetProcAddress(GetModuleHandleW(L"shcore.dll"), "GetDpiForMonitor")));
+    if (!monitor || !pGetDpiForMonitor ||
+        FAILED(pGetDpiForMonitor(monitor, 0 /* MDT_EFFECTIVE_DPI */, &dpiX, &dpiY)) || dpiY == 0) {
+        return 96;
+    }
+    return dpiY;
+}
+
+int TopBarHeightPx(HMONITOR monitor) {
+    const int logical = ClampInt(g_settings.maximizedTopBarHeight, 20, 80);
+    return MulDiv(logical, static_cast<int>(TopBarMonitorDpi(monitor)), 96);
+}
+
+bool IsWindowCloakedForTopBar(HWND hwnd) {
+    DWORD cloaked = 0;
+    return SUCCEEDED(DwmGetWindowAttribute(hwnd, 14 /* DWMWA_CLOAKED */, &cloaked,
+                                           sizeof(cloaked))) &&
+           cloaked != 0;
+}
+
+// A real, on-screen maximized window on the given monitor. Cloaked windows are
+// skipped because they belong to other virtual desktops or to suspended Store
+// apps, and tool windows are never what a user means by "a maximized app".
+bool IsMaximizedWindowOn(HWND hwnd, HMONITOR monitor) {
+    if (hwnd == g_hwnd || hwnd == g_topBarHwnd || hwnd == g_ccHwnd) {
+        return false;
+    }
+    if (!IsWindowVisible(hwnd) || IsIconic(hwnd) || !IsZoomed(hwnd)) {
+        return false;
+    }
+    if (GetWindowLongPtrW(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) {
+        return false;
+    }
+    if (IsWindowCloakedForTopBar(hwnd)) {
+        return false;
+    }
+    return MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL) == monitor;
+}
+
+struct TopBarEnumData {
+    HMONITOR monitor = nullptr;
+    std::vector<HWND>* windows = nullptr;  // null: stop at the first match
+    bool found = false;
+};
+
+BOOL CALLBACK TopBarEnumProc(HWND hwnd, LPARAM lParam) {
+    auto* data = reinterpret_cast<TopBarEnumData*>(lParam);
+    if (!IsMaximizedWindowOn(hwnd, data->monitor)) {
+        return TRUE;
+    }
+    data->found = true;
+    if (!data->windows) {
+        return FALSE;
+    }
+    data->windows->push_back(hwnd);
+    return TRUE;
+}
+
+bool AnyMaximizedWindowOn(HMONITOR monitor) {
+    if (!monitor) {
+        return false;
+    }
+    TopBarEnumData data;
+    data.monitor = monitor;
+    EnumWindows(TopBarEnumProc, reinterpret_cast<LPARAM>(&data));
+    return data.found;
+}
+
+// Another copy of this mod (typically the original next to a fork) draws its
+// own pill and knows nothing about the bar, so it would show up twice. Its
+// window is hidden while the bar is up and shown again afterwards.
+BOOL CALLBACK TopBarForeignIslandProc(HWND hwnd, LPARAM) {
+    wchar_t cls[96] = {};
+    if (GetClassNameW(hwnd, cls, ARRAYSIZE(cls)) <= 0 || wcscmp(cls, kWindowClass) != 0) {
+        return TRUE;
+    }
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == GetCurrentProcessId() || !IsWindowVisible(hwnd)) {
+        return TRUE;
+    }
+    ShowWindowAsync(hwnd, SW_HIDE);
+    if (std::find(g_topBarHiddenForeignIslands.begin(), g_topBarHiddenForeignIslands.end(), hwnd) ==
+        g_topBarHiddenForeignIslands.end()) {
+        g_topBarHiddenForeignIslands.push_back(hwnd);
+        Wh_Log(L"Top bar: hid an island drawn by another copy of the mod. Disable one of the two.");
+    }
+    return TRUE;
+}
+
+void TopBarApplyPosition() {
+    if (!g_topBarHwnd || !g_topBarRegistered) {
+        return;
+    }
+
+    MONITORINFO mi = {sizeof(mi)};
+    if (!GetMonitorInfoW(g_topBarMonitor, &mi)) {
+        return;
+    }
+
+    const int height = TopBarHeightPx(g_topBarMonitor);
+    APPBARDATA abd = {sizeof(abd)};
+    abd.hWnd = g_topBarHwnd;
+    abd.uEdge = ABE_TOP;
+    abd.rc = mi.rcMonitor;
+    abd.rc.bottom = abd.rc.top + height;
+    SHAppBarMessage(ABM_QUERYPOS, &abd);
+    // QUERYPOS may move the top down past another top bar; keep our height.
+    abd.rc.bottom = abd.rc.top + height;
+    SHAppBarMessage(ABM_SETPOS, &abd);
+    g_topBarAppliedHeight = g_settings.maximizedTopBarHeight;
+
+    const UINT showFlag = g_topBarHiddenForFullscreen ? 0 : SWP_SHOWWINDOW;
+    SetWindowPos(g_topBarHwnd, HWND_TOPMOST, abd.rc.left, abd.rc.top,
+                 abd.rc.right - abd.rc.left, abd.rc.bottom - abd.rc.top,
+                 SWP_NOACTIVATE | SWP_NOOWNERZORDER | showFlag);
+    g_topBarSignature.clear();
+    InvalidateRect(g_topBarHwnd, nullptr, FALSE);
+}
+
+// Explorer normally moves maximized windows when the work area shrinks. Some
+// windows are missed, so any maximized window still reaching up into the bar's
+// strip is pushed down to the new work area, keeping its bottom edge.
+void TopBarFixOverlappingWindows() {
+    if (!g_topBarRegistered) {
+        return;
+    }
+
+    MONITORINFO mi = {sizeof(mi)};
+    if (!GetMonitorInfoW(g_topBarMonitor, &mi) || mi.rcWork.top <= mi.rcMonitor.top) {
+        return;
+    }
+
+    std::vector<HWND> windows;
+    TopBarEnumData data;
+    data.monitor = g_topBarMonitor;
+    data.windows = &windows;
+    EnumWindows(TopBarEnumProc, reinterpret_cast<LPARAM>(&data));
+
+    for (HWND window : windows) {
+        RECT r = {};
+        if (!GetWindowRect(window, &r)) {
+            continue;
+        }
+        // A maximized window overhangs the work area by its invisible resize
+        // border on every side; the left edge tells how wide that border is.
+        const int frame = std::max(0, static_cast<int>(mi.rcWork.left - r.left));
+        const int expectedTop = mi.rcWork.top - frame;
+        if (r.top >= expectedTop - 6 || r.bottom <= mi.rcWork.top) {
+            continue;
+        }
+
+        int& attempts = g_topBarFixAttempts[window];
+        if (attempts >= kTopBarMaxFixAttempts) {
+            continue;
+        }
+        ++attempts;
+
+        SetWindowPos(window, nullptr, r.left, expectedTop, r.right - r.left, r.bottom - expectedTop,
+                     SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_ASYNCWINDOWPOS);
+    }
+}
+
+// ── Open apps in the bar ──────────────────────────────────────────────────────
+// With a window maximized the dock is usually out of sight, so the bar lists
+// the open apps on its left: the one in front is highlighted, the one used
+// before it is marked, and a switch button jumps back to it.
+
+// The windows Alt+Tab would list: visible, on this virtual desktop, not owned
+// tool or helper windows, and not part of the shell or of this mod.
+bool TopBarIsAppWindow(HWND hwnd) {
+    if (!hwnd || hwnd == g_hwnd || hwnd == g_topBarHwnd || hwnd == g_ccHwnd || hwnd == g_noteEditorHwnd ||
+        hwnd == g_stickyHwnd) {
+        return false;
+    }
+    if (!IsWindowVisible(hwnd) || IsWindowCloakedForTopBar(hwnd)) {
+        return false;
+    }
+    const LONG_PTR exStyle = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+    if (exStyle & WS_EX_TOOLWINDOW) {
+        return false;
+    }
+    if (!(exStyle & WS_EX_APPWINDOW) && (GetWindow(hwnd, GW_OWNER) || (exStyle & WS_EX_NOACTIVATE))) {
+        return false;
+    }
+    wchar_t title[2] = {};
+    if (GetWindowTextW(hwnd, title, ARRAYSIZE(title)) <= 0) {
+        return false;
+    }
+    wchar_t cls[64] = {};
+    GetClassNameW(hwnd, cls, ARRAYSIZE(cls));
+    if (wcscmp(cls, L"Progman") == 0 || wcscmp(cls, L"WorkerW") == 0) {
+        return false;
+    }
+    return !IsShellOwnedWindow(hwnd);
+}
+
+std::wstring TopBarAppKey(HWND hwnd) {
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    std::wstring path;
+    if (!ProcessImageNameForPid(pid, &path) || path.empty()) {
+        wchar_t buf[32] = {};
+        swprintf_s(buf, L"pid:%lu", pid);
+        return buf;
+    }
+    path = ToLowerCopy(path);
+    // Store apps all run inside ApplicationFrameHost, so each window is its own app.
+    static const std::wstring kFrameHost = L"applicationframehost.exe";
+    if (path.size() >= kFrameHost.size() &&
+        path.compare(path.size() - kFrameHost.size(), kFrameHost.size(), kFrameHost) == 0) {
+        wchar_t buf[32] = {};
+        swprintf_s(buf, L"|%p", static_cast<void*>(hwnd));
+        path += buf;
+    }
+    return path;
+}
+
+int TopBarAppIndex(const std::wstring& key) {
+    if (key.empty()) return -1;
+    for (size_t i = 0; i < g_topBarApps.size(); ++i) {
+        if (g_topBarApps[i].key == key) return static_cast<int>(i);
+    }
+    return -1;
+}
+
+BOOL CALLBACK TopBarAppEnumProc(HWND hwnd, LPARAM lParam) {
+    if (TopBarIsAppWindow(hwnd)) {
+        reinterpret_cast<std::vector<HWND>*>(lParam)->push_back(hwnd);
+    }
+    return TRUE;
+}
+
+void TopBarRefreshApps() {
+    std::vector<HWND> windows;  // top of the z-order first
+    EnumWindows(TopBarAppEnumProc, reinterpret_cast<LPARAM>(&windows));
+
+    std::unordered_map<HWND, std::wstring> keys;
+    for (HWND window : windows) {
+        auto known = g_topBarWindowKeys.find(window);
+        keys[window] = known != g_topBarWindowKeys.end() ? known->second : TopBarAppKey(window);
+    }
+    g_topBarWindowKeys = std::move(keys);
+
+    // Apps already shown keep their place; new ones go at the end, as in a dock.
+    std::vector<TopBarApp> next;
+    for (const TopBarApp& app : g_topBarApps) {
+        next.push_back({app.key, {}, app.icon});
+    }
+    for (HWND window : windows) {
+        const std::wstring& key = g_topBarWindowKeys[window];
+        auto it = std::find_if(next.begin(), next.end(), [&](const TopBarApp& a) { return a.key == key; });
+        if (it == next.end()) {
+            next.push_back({key, {}, nullptr});
+            it = next.end() - 1;
+        }
+        it->windows.push_back(window);
+    }
+    for (auto it = next.begin(); it != next.end();) {
+        if (!it->windows.empty()) {
+            ++it;
+            continue;
+        }
+        // Per-window keys never come back, so their icons are freed.
+        if (it->key.find(L'|') != std::wstring::npos) {
+            auto icon = g_topBarIcons.find(it->key);
+            if (icon != g_topBarIcons.end()) {
+                if (icon->second) DestroyIcon(icon->second);
+                g_topBarIcons.erase(icon);
+            }
+        }
+        it = next.erase(it);
+    }
+    for (TopBarApp& app : next) {
+        if (app.icon) continue;
+        auto cached = g_topBarIcons.find(app.key);
+        if (cached != g_topBarIcons.end()) {
+            app.icon = cached->second;
+        } else {
+            app.icon = getWindowIcon(app.windows.front());
+            g_topBarIcons[app.key] = app.icon;
+        }
+    }
+    g_topBarApps = std::move(next);
+}
+
+// Remembers the app in front and the one before it. Runs on every tick, also
+// while the bar is down, so the last app is known as soon as the bar appears.
+void TopBarTrackForeground() {
+    HWND foreground = GetForegroundWindow();
+    if (!foreground || foreground == g_topBarLastForeground) {
+        return;
+    }
+    g_topBarLastForeground = foreground;
+    if (HWND root = GetAncestor(foreground, GA_ROOTOWNER)) {
+        foreground = root;
+    }
+    if (!TopBarIsAppWindow(foreground)) {
+        return;  // the desktop, the shell or one of this mod's own windows
+    }
+    auto known = g_topBarWindowKeys.find(foreground);
+    const std::wstring key = known != g_topBarWindowKeys.end() ? known->second : TopBarAppKey(foreground);
+    if (key != g_topBarCurrentApp) {
+        if (!g_topBarCurrentApp.empty()) {
+            g_topBarLastApp = g_topBarCurrentApp;
+        }
+        g_topBarCurrentApp = key;
+    }
+    if (g_topBarRecentApps.empty() || g_topBarRecentApps.front() != key) {
+        auto recent = std::find(g_topBarRecentApps.begin(), g_topBarRecentApps.end(), key);
+        if (recent != g_topBarRecentApps.end()) g_topBarRecentApps.erase(recent);
+        g_topBarRecentApps.insert(g_topBarRecentApps.begin(), key);
+        if (g_topBarRecentApps.size() > 32) g_topBarRecentApps.resize(32);
+    }
+}
+
+void TopBarFocusWindow(HWND hwnd) {
+    if (!IsWindow(hwnd)) return;
+    if (IsIconic(hwnd)) {
+        ShowWindow(hwnd, SW_RESTORE);
+    }
+    // The click on the bar was the last input, so the foreground may be handed on.
+    SetForegroundWindow(hwnd);
+}
+
+// Like a dock: an app in the background comes to the front; clicking the app
+// already in front cycles its windows, or minimizes it when it has only one.
+void TopBarActivateApp(int index) {
+    if (index < 0 || index >= static_cast<int>(g_topBarApps.size())) return;
+    const TopBarApp app = g_topBarApps[index];
+    if (app.windows.empty()) return;
+    HWND foreground = GetForegroundWindow();
+    if (HWND root = foreground ? GetAncestor(foreground, GA_ROOTOWNER) : nullptr) {
+        foreground = root;
+    }
+    const bool inFront = std::find(app.windows.begin(), app.windows.end(), foreground) != app.windows.end();
+    if (!inFront) {
+        TopBarFocusWindow(app.windows.front());
+    } else if (app.windows.size() > 1) {
+        TopBarFocusWindow(app.windows.back());
+    } else {
+        ShowWindow(app.windows.front(), SW_MINIMIZE);
+    }
+}
+
+void TopBarFreeAppIcons() {
+    for (auto& entry : g_topBarIcons) {
+        if (entry.second) DestroyIcon(entry.second);
+    }
+    g_topBarIcons.clear();
+    g_topBarApps.clear();
+}
+
+bool TopBarEnter(HMONITOR monitor) {
+    if (!g_topBarHwnd || g_topBarRegistered || !monitor) {
+        return false;
+    }
+
+    APPBARDATA abd = {sizeof(abd)};
+    abd.hWnd = g_topBarHwnd;
+    abd.uCallbackMessage = WM_APP_TOPBAR_CALLBACK;
+    if (!SHAppBarMessage(ABM_NEW, &abd)) {
+        Wh_Log(L"Top bar: ABM_NEW failed.");
+        return false;
+    }
+
+    g_topBarRegistered = true;
+    g_topBarMonitor = monitor;
+    g_topBarHiddenForFullscreen = false;
+    g_topBarFixAttempts.clear();
+    g_topBarSignature.clear();
+    g_topBarHover = -1;
+
+    const BYTE alpha = static_cast<BYTE>(Clamp(g_settings.pillOpacity, 0.35f, 1.0f) * 255.0f);
+    SetLayeredWindowAttributes(g_topBarHwnd, 0, alpha, LWA_ALPHA);
+
+    // Hide the pill right away rather than letting it shrink: the render loop
+    // collapses and parks it on its next frame, but by then the work area has
+    // already moved and the pill would flash below the bar.
+    g_barModeActive = true;
+    if (g_hwnd) {
+        ShowWindow(g_hwnd, SW_HIDE);
+        PostMessageW(g_hwnd, WM_NULL, 0, 0);
+    }
+    if (g_ccNotchOpen.load()) {
+        CcHide();
+    }
+    EnumWindows(TopBarForeignIslandProc, 0);
+
+    TopBarRefreshApps();
+    TopBarApplyPosition();
+    TopBarFixOverlappingWindows();
+    CcWake();
+    StickyUpdate(true);
+    return true;
+}
+
+void TopBarExit() {
+    if (g_topBarRegistered && g_topBarHwnd) {
+        APPBARDATA abd = {sizeof(abd)};
+        abd.hWnd = g_topBarHwnd;
+        SHAppBarMessage(ABM_REMOVE, &abd);
+    }
+    g_topBarRegistered = false;
+    g_topBarMonitor = nullptr;
+    g_topBarFixAttempts.clear();
+    g_barDropdownOpen = false;
+    if (g_topBarHwnd) {
+        ShowWindow(g_topBarHwnd, SW_HIDE);
+    }
+    if (CcIsOpen() && !g_ccNotchOpen.load()) {
+        CcHide();
+    }
+
+    for (HWND foreign : g_topBarHiddenForeignIslands) {
+        if (IsWindow(foreign)) {
+            ShowWindowAsync(foreign, SW_SHOWNOACTIVATE);
+        }
+    }
+    g_topBarHiddenForeignIslands.clear();
+
+    if (g_barModeActive.exchange(false)) {
+        // Bring the pill back promptly instead of waiting for the parked
+        // island's next re-check.
+        g_layoutDirty = true;
+        if (g_hwnd) {
+            PostMessageW(g_hwnd, WM_NULL, 0, 0);
+        }
+        StickyUpdate(true);
+    }
+}
+
+std::wstring TopBarClockText() {
+    SYSTEMTIME local = {};
+    GetLocalTime(&local);
+    return FormatIslandTime(local, g_settings.clockFollowSystem, g_settings.use24HourClock,
+                            g_settings.showSeconds);
+}
+
+void TopBarEnsureFonts(int barHeight) {
+    const int px = std::max(10, static_cast<int>(std::lround(
+                                    barHeight * 0.5f * Clamp(g_settings.textScale, 0.5f, 2.0f))));
+    if (g_topBarFont && px == g_topBarFontPx && g_settings.fontFamily == g_topBarFontFamily) {
+        return;
+    }
+    if (g_topBarFont) DeleteObject(g_topBarFont);
+    if (g_topBarIconFont) DeleteObject(g_topBarIconFont);
+    const wchar_t* family = g_settings.fontFamily.empty() ? L"Segoe UI Variable Display"
+                                                          : g_settings.fontFamily.c_str();
+    g_topBarFont = CreateFontW(-px, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                               OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                               DEFAULT_PITCH | FF_DONTCARE, family);
+    g_topBarIconFont = CreateFontW(-px, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                                   OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                                   DEFAULT_PITCH | FF_DONTCARE, L"Segoe Fluent Icons");
+    g_topBarFontPx = px;
+    g_topBarFontFamily = g_settings.fontFamily;
+}
+
+// First line of a text, trimmed and cut to maxChars with an ellipsis.
+std::wstring TopBarShort(const std::wstring& text, size_t maxChars) {
+    std::wstring line = text.substr(0, text.find_first_of(L"\r\n"));
+    const size_t first = line.find_first_not_of(L" \t");
+    if (first == std::wstring::npos) return L"";
+    line = line.substr(first, line.find_last_not_of(L" \t") - first + 1);
+    if (line.size() > maxChars && maxChars > 1) {
+        line.resize(maxChars - 1);
+        line += L"…";
+    }
+    return line;
+}
+
+// The alert the notch would be showing right now (Caps Lock, something copied,
+// a device...), in the same order the island picks them.
+bool TopBarAlert(std::wstring* glyph, std::wstring* text) {
+    const double now = NowSeconds();
+    std::lock_guard lock(g_stateMutex);
+    const SharedState& st = g_state;
+    if (st.clipboard.active && now < st.clipboard.expiresAt) {
+        *glyph = L"";
+        *text = st.clipboard.image          ? std::wstring(L"Imagen copiada")
+                : st.clipboard.text.empty() ? std::wstring(L"Copiado")
+                                            : L"Copiado: " + TopBarShort(st.clipboard.text, 36);
+        return true;
+    }
+    if (g_settings.capsLock && st.capsLock.active && now < st.capsLock.expiresAt) {
+        *glyph = L"";
+        if (st.capsLock.isNumEvent) {
+            *text = st.capsLock.numOn ? L"Bloq Num activado" : L"Bloq Num desactivado";
+        } else {
+            *text = st.capsLock.capsOn ? L"Bloq Mayús activado" : L"Bloq Mayús desactivado";
+        }
+        return true;
+    }
+    if (st.device.active && now < st.device.expiresAt) {
+        *glyph = L"";
+        *text = (st.device.deviceName.empty() ? std::wstring(L"Dispositivo") : TopBarShort(st.device.deviceName, 32)) +
+                (st.device.eventType == DeviceEventType::Connected ? L" conectado" : L" desconectado");
+        return true;
+    }
+    if (g_settings.bluetoothIndicator && st.bluetoothDevice.active && now < st.bluetoothDevice.expiresAt) {
+        *glyph = CcGlyph::kBluetooth;
+        *text = TopBarShort(st.bluetoothDevice.deviceName, 32) +
+                (st.bluetoothDevice.connected ? L" conectado" : L" desconectado");
+        if (st.bluetoothDevice.batteryPercent >= 0) {
+            *text += L" · " + std::to_wstring(st.bluetoothDevice.batteryPercent) + L"%";
+        }
+        return true;
+    }
+    if (g_settings.doNotDisturbIndicator && st.doNotDisturb.active && now < st.doNotDisturb.expiresAt) {
+        *glyph = L"";
+        *text = st.doNotDisturb.enabled ? L"No molestar activado" : L"No molestar desactivado";
+        return true;
+    }
+    if (g_settings.volume && st.volume.active && now < st.volume.expiresAt) {
+        *glyph = CcVolumeGlyph(st.volume.percent / 100.0f, st.volume.muted);
+        *text = st.volume.muted ? std::wstring(L"Silenciado") : L"Volumen " + std::to_wstring(st.volume.percent) + L"%";
+        return true;
+    }
+    if (st.notification.active && now < st.notification.expiresAt) {
+        *glyph = L"";
+        const std::wstring what = st.notification.title.empty() ? st.notification.body : st.notification.title;
+        *text = TopBarShort(st.notification.app.empty() ? what : st.notification.app + L": " + what, 48);
+        return true;
+    }
+    if (g_settings.battery && st.battery.active && now < st.battery.expiresAt) {
+        *glyph = CcBatteryGlyph(st.battery.percent, st.battery.charging);
+        *text = L"Batería baja · " + std::to_wstring(st.battery.percent) + L"%";
+        return true;
+    }
+    return false;
+}
+
+// Lays the bar out in three groups that never overlap:
+//   left   - the open apps (with a switch-back button) and the pinned note
+//   centre - the clock, with the current alert just left of it
+//   right  - shortcuts to the notch cards, then the system status in macOS
+//            order (network, Bluetooth, volume, battery, Control Center)
+// The right group is placed first; the clock moves left rather than run into
+// it, and the left group only takes what is left before the alert or clock.
+std::vector<TopBarItem> TopBarLayout(HDC dc, int width, int height) {
+    std::vector<TopBarItem> items;
+    TopBarEnsureFonts(height);
+    auto textWidth = [&](const std::wstring& text) {
+        HGDIOBJ old = SelectObject(dc, g_topBarFont);
+        SIZE sz = {};
+        GetTextExtentPoint32W(dc, text.c_str(), static_cast<int>(text.size()), &sz);
+        SelectObject(dc, old);
+        return static_cast<int>(sz.cx);
+    };
+
+    const CcStatus s = CcGetStatus();
+    float volume = 0.0f;
+    bool muted = false;
+    const bool hasVolume = CcGetVolume(&volume, &muted);
+    int battery = 0;
+    bool charging = false;
+    const bool hasBattery = CcBattery(&battery, &charging);
+
+    const int pad = std::max(4, height / 4);
+    const int gap = std::max(8, height / 2);       // between groups
+    const int spacing = std::max(2, height / 10);  // between items of a group
+    const int iconW = static_cast<int>(height * 1.15f);
+
+    std::vector<TopBarItem> right;
+    auto widget = [&](bool on, int tab, const wchar_t* glyph) {
+        if (!on) return;
+        TopBarItem item = {kBarWidget, {}, glyph, L""};
+        item.tab = tab;
+        right.push_back(item);
+    };
+    widget(g_settings.calendarTab, kTabCalendar, L"");
+    widget(g_settings.weather, kTabWeather, L"");
+    widget(g_settings.notesModule || g_settings.fileTrayModule, kTabNotes, L"");
+    widget(g_settings.pomodoroModule && !PomoActive(), kTabPomodoro, L"");
+    const size_t widgetCount = right.size();
+    if (PomoActive()) {
+        right.push_back({kBarPomodoro, {}, L"", PomoFlashing() ? g_pomo.flashText : PomoClockText()});
+    }
+    right.push_back({kBarNetwork, {}, CcNetworkGlyph(s), L""});
+    if (s.btPresent) right.push_back({kBarBluetooth, {}, CcGlyph::kBluetooth, L""});
+    if (hasVolume) right.push_back({kBarVolume, {}, CcVolumeGlyph(volume, muted), L""});
+    if (hasBattery) {
+        wchar_t pct[16] = {};
+        swprintf_s(pct, L"%d%%", battery);
+        right.push_back({kBarBattery, {}, CcBatteryGlyph(battery, charging), pct});
+    }
+    right.push_back({kBarControlCenter, {}, CcGlyph::kControlCenter, L""});
+
+    int x = width - pad;
+    for (size_t i = right.size(); i-- > 0;) {
+        TopBarItem& item = right[i];
+        int w = iconW;
+        if (!item.label.empty()) {
+            w += textWidth(item.label) + pad / 2;
+        }
+        item.rect = {x - w, 2, x, height - 2};
+        x -= w + spacing;
+        if (i == widgetCount && widgetCount > 0) {
+            x -= gap - spacing;  // set the card shortcuts apart from the status icons
+        }
+    }
+    const int rightStart = right.front().rect.left;
+
+    TopBarItem clock = {kBarClock, {}, L"", TopBarClockText()};
+    {
+        const int w = textWidth(clock.label) + pad * 2;
+        int left = (width - w) / 2;
+        left = std::max(pad, std::min(left, rightStart - gap - w));
+        clock.rect = {left, 2, left + w, height - 2};
+    }
+    items.push_back(clock);
+    int leftLimit = clock.rect.left - gap;
+
+    // The four most recently used apps (the one in front first), then a button
+    // that brings up the dock for the rest. Measured first so a long alert does
+    // not push them out.
+    constexpr int kBarRecentApps = 4;
+    std::vector<int> shownApps;
+    for (const std::wstring& key : g_topBarRecentApps) {
+        const int index = TopBarAppIndex(key);
+        if (index >= 0 && static_cast<int>(shownApps.size()) < kBarRecentApps) shownApps.push_back(index);
+    }
+    for (int i = 0; i < static_cast<int>(g_topBarApps.size()) && static_cast<int>(shownApps.size()) < kBarRecentApps; ++i) {
+        if (std::find(shownApps.begin(), shownApps.end(), i) == shownApps.end()) shownApps.push_back(i);
+    }
+    const int currentIndex = TopBarAppIndex(g_topBarCurrentApp);
+    const int lastIndex = TopBarAppIndex(g_topBarLastApp);
+    const bool showSwitch = lastIndex >= 0 && lastIndex != currentIndex;
+    const int appCount = static_cast<int>(shownApps.size()) + (showSwitch ? 1 : 0) + 1;  // + the dock button
+    const int appsWidth = appCount * (iconW + spacing) - spacing + gap;
+    const bool hasNote = NotesHasPinned();
+    const int noteReserve = hasNote ? iconW + gap : 0;
+
+    std::wstring alertGlyph, alertText;
+    if (TopBarAlert(&alertGlyph, &alertText)) {
+        const int room = std::max(leftLimit - pad - appsWidth - noteReserve, (leftLimit - pad) / 3);
+        int w = std::min(iconW + textWidth(alertText) + pad, room);
+        if (w >= iconW) {
+            TopBarItem alert = {kBarAlert, {}, alertGlyph, alertText};
+            if (w < iconW + pad * 3) {
+                w = iconW;
+                alert.label.clear();
+            }
+            alert.rect = {leftLimit - w, 2, leftLimit, height - 2};
+            items.push_back(alert);
+            leftLimit = alert.rect.left - gap;
+        }
+    }
+
+    int lx = pad;
+    {
+        auto fits = [&]() { return lx + iconW <= leftLimit - noteReserve; };
+        if (showSwitch && fits()) {
+            TopBarItem item = {kBarSwitchApp, {}, L"", L""};
+            item.app = lastIndex;
+            item.rect = {lx, 2, lx + iconW, height - 2};
+            items.push_back(item);
+            lx += iconW + spacing;
+        }
+        for (int index : shownApps) {
+            if (!fits()) break;
+            TopBarItem item = {kBarApp, {}, L"", L""};
+            item.app = index;
+            item.rect = {lx, 2, lx + iconW, height - 2};
+            items.push_back(item);
+            lx += iconW + spacing;
+        }
+        if (fits()) {
+            TopBarItem item = {kBarMoreApps, {}, L"", L""};
+            item.rect = {lx, 2, lx + iconW, height - 2};
+            items.push_back(item);
+            lx += iconW + spacing;
+        }
+        lx += gap - spacing;
+    }
+
+    // A pinned note shows as a chip on the left, like a notification.
+    if (hasNote) {
+        TopBarItem note = {kBarNote, {}, L"", NoteFirstLine(g_notes[g_pinnedNote], 40)};
+        int w = std::min(iconW + textWidth(note.label) + pad, leftLimit - lx);
+        if (w >= iconW) {
+            if (w < iconW + pad * 3) {
+                w = iconW;
+                note.label.clear();
+            }
+            note.rect = {lx, 2, lx + w, height - 2};
+            items.push_back(note);
+        }
+    }
+    items.insert(items.end(), right.begin(), right.end());
+    return items;
+}
+
+COLORREF TopBarColor(const D2D1_COLOR_F& c) {
+    auto channel = [](float v) {
+        return static_cast<BYTE>(std::lround(Clamp(v, 0.0f, 1.0f) * 255.0f));
+    };
+    return RGB(channel(c.r), channel(c.g), channel(c.b));
+}
+
+COLORREF TopBarMix(const D2D1_COLOR_F& a, float amount) {
+    D2D1_COLOR_F c = a;
+    c.r += (1.0f - c.r) * amount;
+    c.g += (1.0f - c.g) * amount;
+    c.b += (1.0f - c.b) * amount;
+    return TopBarColor(c);
+}
+
+D2D1_COLOR_F TopBarAccent() {
+    return g_settings.accentMode == AccentMode::Custom ? g_settings.customAccent : GetSystemAccentColor();
+}
+
+// The background blended towards the accent, for the alert chip.
+COLORREF TopBarAccentTint(float amount) {
+    const D2D1_COLOR_F bg = g_settings.pillBgColor;
+    const D2D1_COLOR_F accent = TopBarAccent();
+    D2D1_COLOR_F c = bg;
+    c.r += (accent.r - bg.r) * amount;
+    c.g += (accent.g - bg.g) * amount;
+    c.b += (accent.b - bg.b) * amount;
+    return TopBarColor(c);
+}
+
+bool TopBarCardShown(int tab);  // defined with the dropdown below
+
+// Whether the bar's own panel (or the dropped-down island) belongs to an item,
+// so that item stays lit while it is open.
+bool TopBarItemOpen(const TopBarItem& item, bool widgetOpen) {
+    const bool barPanel = CcIsOpen() && !g_ccNotchOpen.load();
+    switch (item.kind) {
+        case kBarNetwork: return barPanel && g_ccMode.load() == kCcModeWifi;
+        case kBarBluetooth: return barPanel && g_ccMode.load() == kCcModeBluetooth;
+        case kBarControlCenter: return barPanel && g_ccMode.load() == kCcModeFull;
+        case kBarWidget: return g_barDropdownOpen.load() && TopBarCardShown(item.tab);
+        case kBarClock: return g_barDropdownOpen.load() && !widgetOpen;
+        default: return false;
+    }
+}
+
+void TopBarPaint(HWND hwnd) {
+    PAINTSTRUCT ps = {};
+    HDC dc = BeginPaint(hwnd, &ps);
+    RECT rc = {};
+    GetClientRect(hwnd, &rc);
+    const int width = rc.right - rc.left;
+    const int height = rc.bottom - rc.top;
+
+    if (width > 0 && height > 0) {
+        HDC mem = CreateCompatibleDC(dc);
+        HBITMAP bitmap = CreateCompatibleBitmap(dc, width, height);
+        HGDIOBJ oldBitmap = SelectObject(mem, bitmap);
+
+        HBRUSH background = CreateSolidBrush(TopBarColor(g_settings.pillBgColor));
+        FillRect(mem, &rc, background);
+        DeleteObject(background);
+
+        const std::vector<TopBarItem> items = TopBarLayout(mem, width, height);
+        SetBkMode(mem, TRANSPARENT);
+        SetTextColor(mem, TopBarColor(g_settings.textPrimaryColor));
+        HGDIOBJ oldFont = SelectObject(mem, g_topBarFont);
+        HGDIOBJ oldPen = SelectObject(mem, GetStockObject(NULL_PEN));
+        HBRUSH hoverBrush = CreateSolidBrush(TopBarMix(g_settings.pillBgColor, 0.16f));
+        HBRUSH alertBrush = CreateSolidBrush(TopBarAccentTint(0.38f));
+        HBRUSH accentBrush = CreateSolidBrush(TopBarColor(TopBarAccent()));
+        HBRUSH mutedBrush = CreateSolidBrush(TopBarColor(g_settings.textSecondaryColor));
+
+        bool widgetOpen = false;
+        for (const TopBarItem& item : items) {
+            if (item.kind == kBarWidget && TopBarItemOpen(item, false)) widgetOpen = true;
+        }
+
+        const int radius = std::max(6, height / 3);
+        const int markH = std::max(2, height / 14);
+        const int currentIndex = TopBarAppIndex(g_topBarCurrentApp);
+        const int lastIndex = TopBarAppIndex(g_topBarLastApp);
+        for (size_t i = 0; i < items.size(); ++i) {
+            const TopBarItem& item = items[i];
+            RECT r = item.rect;
+            const bool isCurrentApp = item.kind == kBarApp && item.app == currentIndex;
+            const bool active = static_cast<int>(i) == g_topBarHover || item.kind == kBarNote || isCurrentApp ||
+                                (item.kind == kBarPomodoro && PomoFlashing()) || TopBarItemOpen(item, widgetOpen);
+            if (item.kind == kBarAlert) {
+                HGDIOBJ oldBrush = SelectObject(mem, alertBrush);
+                RoundRect(mem, r.left, r.top, r.right, r.bottom, radius, radius);
+                SelectObject(mem, oldBrush);
+            } else if (active) {
+                HGDIOBJ oldBrush = SelectObject(mem, hoverBrush);
+                RoundRect(mem, r.left, r.top, r.right, r.bottom, radius, radius);
+                SelectObject(mem, oldBrush);
+            }
+            if (item.kind == kBarClock) {
+                SelectObject(mem, g_topBarFont);
+                DrawTextW(mem, item.label.c_str(), -1, &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+                continue;
+            }
+            if (item.kind == kBarApp) {
+                if (item.app >= 0 && item.app < static_cast<int>(g_topBarApps.size())) {
+                    const int size = std::max(12, static_cast<int>(height * 0.62f));
+                    const int ix = (r.left + r.right - size) / 2;
+                    const int iy = (r.top + r.bottom - size) / 2 - markH / 2;
+                    if (HICON icon = g_topBarApps[item.app].icon) {
+                        DrawIconEx(mem, ix, iy, icon, size, size, 0, nullptr, DI_NORMAL);
+                    }
+                }
+                // Front app: accent mark; the one before it: a muted mark.
+                if (isCurrentApp || item.app == lastIndex) {
+                    const int cx = (r.left + r.right) / 2;
+                    const int half = std::max(3, static_cast<int>(r.right - r.left) / 5);
+                    RECT mark = {cx - half, r.bottom - markH - 1, cx + half, r.bottom - 1};
+                    FillRect(mem, &mark, isCurrentApp ? accentBrush : mutedBrush);
+                }
+                continue;
+            }
+            RECT iconRect = r;
+            if (!item.label.empty()) {
+                iconRect.right = iconRect.left + static_cast<int>(height * 1.15f);
+                RECT labelRect = r;
+                labelRect.left = iconRect.right - height / 6;
+                labelRect.right -= height / 6;
+                SelectObject(mem, g_topBarFont);
+                DrawTextW(mem, item.label.c_str(), -1, &labelRect,
+                          DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+            }
+            SelectObject(mem, g_topBarIconFont);
+            DrawTextW(mem, item.glyph.c_str(), -1, &iconRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+            if (item.kind == kBarPomodoro && !PomoFlashing() && g_pomo.running) {
+                // Time-left bar under the Pomodoro item.
+                const int barH = std::max(2, height / 14);
+                RECT track = {r.left + 4, r.bottom - barH - 1, r.right - 4, r.bottom - 1};
+                HBRUSH trackBrush = CreateSolidBrush(TopBarMix(g_settings.pillBgColor, 0.18f));
+                FillRect(mem, &track, trackBrush);
+                DeleteObject(trackBrush);
+                RECT done = track;
+                done.right = track.left + static_cast<int>((track.right - track.left) * PomoProgress());
+                FillRect(mem, &done, accentBrush);
+            }
+        }
+
+        DeleteObject(hoverBrush);
+        DeleteObject(alertBrush);
+        DeleteObject(accentBrush);
+        DeleteObject(mutedBrush);
+        SelectObject(mem, oldPen);
+        SelectObject(mem, oldFont);
+
+        BitBlt(dc, 0, 0, width, height, mem, 0, 0, SRCCOPY);
+        SelectObject(mem, oldBitmap);
+        DeleteObject(bitmap);
+        DeleteDC(mem);
+    }
+
+    EndPaint(hwnd, &ps);
+}
+
+int TopBarHitTest(HWND hwnd, POINT clientPt, TopBarItem* outItem) {
+    RECT rc = {};
+    GetClientRect(hwnd, &rc);
+    HDC dc = GetDC(hwnd);
+    const std::vector<TopBarItem> items = TopBarLayout(dc, rc.right - rc.left, rc.bottom - rc.top);
+    ReleaseDC(hwnd, dc);
+    for (size_t i = 0; i < items.size(); ++i) {
+        if (items[i].kind != kBarAlert && PtInRect(&items[i].rect, clientPt)) {
+            if (outItem) *outItem = items[i];
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+// ── Island dropped down below the bar ────────────────────────────────────────
+// The clock and the card shortcuts drop the expanded island down under the
+// bar, on the card asked for (or the one last selected). The cards work as
+// usual there; a click anywhere else folds it away again (see the render loop).
+
+// The calendar and the weather are views of the time card, so their shortcuts
+// select that card and turn it to the right view.
+bool TopBarCardShown(int tab) {
+    const int current = CurrentTabId(g_settings);
+    switch (tab) {
+        case kTabCalendar: return current == TimeCardTab() && TimeCardView(g_settings) == kTimeViewCalendar;
+        case kTabWeather: return current == TimeCardTab() && TimeCardView(g_settings) == kTimeViewWeather;
+        default: return current == tab;
+    }
+}
+
+void TopBarSelectCard(int tab) {
+    switch (tab) {
+        case kTabCalendar:
+        case kTabWeather:
+            SetTimeCardView(tab == kTabCalendar ? kTimeViewCalendar : kTimeViewWeather);
+            SelectTab(TimeCardTab());
+            break;
+        default:
+            SelectTab(tab);
+            break;
+    }
+}
+
+void TopBarOpenDropdown(int tab) {
+    if (!g_topBarRegistered || !g_hwnd) return;
+    if (tab >= 0) {
+        TopBarSelectCard(tab);
+    }
+    g_barDropdownOpenedAt = NowSeconds();
+    g_barDropdownOpen = true;
+    g_autoHiddenParked = false;
+    g_layoutDirty = true;
+    PostMessageW(g_hwnd, WM_NULL, 0, 0);
+    TopBarInvalidate();
+}
+
+void TopBarCloseDropdown() {
+    if (!g_barDropdownOpen.exchange(false)) return;
+    if (CcIsOpen() && g_ccNotchOpen.load()) {
+        CcHide();
+    }
+    g_layoutDirty = true;
+    if (g_hwnd) PostMessageW(g_hwnd, WM_NULL, 0, 0);
+    TopBarInvalidate();
+}
+
+void TopBarToggleDropdown(int tab) {
+    if (g_barDropdownOpen.load() && (tab < 0 || TopBarCardShown(tab))) {
+        TopBarCloseDropdown();
+        return;
+    }
+    TopBarOpenDropdown(tab);
+}
+
+// Opens the Control Center, or just its network or Bluetooth section, under
+// the item; clicking the same item again closes it.
+void TopBarShowPanel(int mode, const TopBarItem& item) {
+    if (CcIsOpen()) {
+        const bool same = !g_ccNotchOpen.load() && g_ccMode.load() == mode;
+        CcHide();
+        if (same) return;
+    }
+    RECT bar = {};
+    GetWindowRect(g_topBarHwnd, &bar);
+    const int gap = std::max(4, static_cast<int>(bar.bottom - bar.top) / 5);
+    CcShowAt(g_topBarMonitor, bar.bottom + gap, 0, bar.left + item.rect.right, false, mode);
+}
+
+void TopBarActivate(const TopBarItem& item) {
+    switch (item.kind) {
+        case kBarClock:
+            TopBarToggleDropdown(-1);
+            break;
+        case kBarWidget:
+            TopBarToggleDropdown(item.tab);
+            break;
+        case kBarNetwork:
+            TopBarShowPanel(kCcModeWifi, item);
+            break;
+        case kBarBluetooth:
+            TopBarShowPanel(kCcModeBluetooth, item);
+            break;
+        case kBarVolume:
+            CcSendKeys({VK_LWIN, VK_CONTROL, 'V'});  // sound output quick settings
+            break;
+        case kBarBattery:
+            CcShellOpen(L"ms-settings:batterysaver");
+            break;
+        case kBarNote: {
+            RECT bar = {};
+            GetWindowRect(g_topBarHwnd, &bar);
+            NoteEditorOpen(g_pinnedNote, g_topBarMonitor, bar.bottom + 6, bar.left + item.rect.left, 1);
+            break;
+        }
+        case kBarPomodoro:
+            PomoToggle();
+            break;
+        case kBarControlCenter:
+            TopBarShowPanel(kCcModeFull, item);
+            break;
+        case kBarApp:
+        case kBarSwitchApp:
+            TopBarActivateApp(item.app);
+            g_topBarLastForeground = nullptr;  // pick up the switch on the next tick
+            break;
+        case kBarMoreApps:
+            // Win+T brings up the dock (even when it auto-hides) with focus on it.
+            CcSendKeys({VK_LWIN, 'T'});
+            break;
+        case kBarAlert:
+            break;
+    }
+    g_topBarSignature.clear();
+    InvalidateRect(g_topBarHwnd, nullptr, FALSE);
+}
+
+// What the bar would paint now, so the tick repaints only on a real change.
+std::wstring TopBarCurrentSignature() {
+    const CcStatus s = CcGetStatus();
+    float volume = 0.0f;
+    bool muted = false;
+    CcGetVolume(&volume, &muted);
+    int battery = 0;
+    bool charging = false;
+    CcBattery(&battery, &charging);
+    wchar_t buf[128] = {};
+    swprintf_s(buf, L"|%d%d%d%d|%s|%d|%d|%d%d%d|%d|%d", s.netConnected, s.wifiPresent, s.wifiOn, s.btPresent,
+               CcVolumeGlyph(volume, muted), battery, charging, CcIsOpen(), g_ccMode.load(), g_ccNotchOpen.load(),
+               g_topBarHover, g_barDropdownOpen.load() ? CurrentTabId(g_settings) + 1 : 0);
+    std::wstring signature = TopBarClockText() + buf;
+    if (PomoActive()) signature += L"|p" + (PomoFlashing() ? g_pomo.flashText : PomoClockText()) +
+                                   std::to_wstring(static_cast<int>(PomoProgress() * 100.0f));
+    if (NotesHasPinned()) signature += L"|n" + NoteFirstLine(g_notes[g_pinnedNote], 40);
+    std::wstring alertGlyph, alertText;
+    if (TopBarAlert(&alertGlyph, &alertText)) signature += L"|a" + alertGlyph + alertText;
+    signature += L"|c" + g_topBarCurrentApp + L"|l" + g_topBarLastApp;
+    signature += L"|v" + std::to_wstring(g_timeCardView.load());
+    for (const TopBarApp& app : g_topBarApps) {
+        signature += L"|" + app.key;
+    }
+    return signature;
+}
+
+void TopBarTick() {
+    if (!g_topBarHwnd) {
+        return;
+    }
+
+    PomoTick();
+    StickyUpdate(false);
+    TopBarTrackForeground();
+
+    const bool enabled = g_settings.maximizedTopBar && !g_manuallyHidden.load();
+    const HMONITOR monitor = g_topBarRegistered ? g_topBarMonitor : GetAnchorMonitor();
+    const bool want = enabled && AnyMaximizedWindowOn(monitor);
+
+    if (want != g_topBarRegistered) {
+        // Leaving because the feature was switched off or the island was hidden
+        // with the hotkey is immediate; reacting to windows is debounced.
+        const bool immediate = !enabled && g_topBarRegistered;
+        if (immediate || ++g_topBarSwitchStreak >= kTopBarSwitchTicks) {
+            g_topBarSwitchStreak = 0;
+            if (want) {
+                TopBarEnter(monitor);
+            } else {
+                TopBarExit();
+            }
+        }
+    } else {
+        g_topBarSwitchStreak = 0;
+    }
+
+    if (!g_topBarRegistered) {
+        return;
+    }
+
+    // The render loop may have re-shown the pill (a settings change does that);
+    // the bar owns the edge, so keep it hidden unless it is dropped down.
+    if (g_hwnd && IsWindowVisible(g_hwnd) && !g_barDropdownOpen.load() && !g_barDropdownFolding.load()) {
+        ShowWindow(g_hwnd, SW_HIDE);
+    }
+    EnumWindows(TopBarForeignIslandProc, 0);
+    TopBarRefreshApps();
+
+    if (g_topBarAppliedHeight != g_settings.maximizedTopBarHeight) {
+        TopBarApplyPosition();
+    }
+
+    // A real full-screen app (a game, a video) covers the work area anyway; get
+    // out of its way, but keep the reservation so maximized windows do not jump.
+    const bool fullscreen = IsForegroundFullscreenOnMonitor(g_topBarHwnd, g_topBarMonitor);
+    if (fullscreen != g_topBarHiddenForFullscreen) {
+        g_topBarHiddenForFullscreen = fullscreen;
+        if (fullscreen) {
+            ShowWindow(g_topBarHwnd, SW_HIDE);
+        } else {
+            TopBarApplyPosition();
+        }
+    }
+
+    TopBarFixOverlappingWindows();
+
+    std::wstring signature = TopBarCurrentSignature();
+    if (signature != g_topBarSignature) {
+        g_topBarSignature = std::move(signature);
+        InvalidateRect(g_topBarHwnd, nullptr, FALSE);
+    }
+}
+
+LRESULT CALLBACK TopBarWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_TIMER:
+            if (wParam == kTopBarTimerId) {
+                TopBarTick();
+                return 0;
+            }
+            break;
+        case WM_PAINT:
+            TopBarPaint(hwnd);
+            return 0;
+        case WM_ERASEBKGND:
+            return 1;
+        case WM_MOUSEACTIVATE:
+            return MA_NOACTIVATE;
+        case WM_MOUSEMOVE: {
+            const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            const int hit = TopBarHitTest(hwnd, pt, nullptr);
+            if (hit != g_topBarHover) {
+                g_topBarHover = hit;
+                TRACKMOUSEEVENT tme = {sizeof(tme), TME_LEAVE, hwnd, 0};
+                TrackMouseEvent(&tme);
+                InvalidateRect(hwnd, nullptr, FALSE);
+            }
+            return 0;
+        }
+        case WM_MOUSELEAVE:
+            if (g_topBarHover != -1) {
+                g_topBarHover = -1;
+                InvalidateRect(hwnd, nullptr, FALSE);
+            }
+            return 0;
+        case WM_LBUTTONUP: {
+            const POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+            TopBarItem item = {};
+            if (TopBarHitTest(hwnd, pt, &item) >= 0) {
+                TopBarActivate(item);
+            }
+            return 0;
+        }
+        case WM_DISPLAYCHANGE:
+            // Monitors moved or changed resolution: drop the reservation and let
+            // the next ticks set it up again against the new layout.
+            TopBarExit();
+            break;
+        case WM_APP_TOPBAR_CALLBACK:
+            if (wParam == ABN_POSCHANGED) {
+                TopBarApplyPosition();
+            }
+            return 0;
+        case WM_DESTROY:
+            TopBarExit();
+            break;
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 bool DecodeImageBytesToPixels(const std::vector<uint8_t>& bytes, BitmapPixels* outPixels) {
@@ -3951,7 +8104,6 @@ DWORD WINAPI MediaThreadProc(void*) {
             if (isDifferentTrack) {
                 next.titleChangedAt = NowSeconds();
                 trackJustChanged = true;
-                g_idleTab = 0;
             }
 
             if (!g_state.media.art.bgra.empty() &&
@@ -6594,7 +10746,7 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
                 std::lock_guard lock(g_stateMutex);
                 g_state.fileTrayItems.clear();
             }
-            g_hoveredFileTrayRow = -1;
+            FileTraySave();
             g_layoutDirty = true;
             break;
         }
@@ -6870,8 +11022,8 @@ class Renderer {
 
         SYSTEMTIME local = {};
         GetLocalTime(&local);
-        const std::wstring clock = FormatIslandTime(local, settings.clockFollowSystem,
-                                                    settings.use24HourClock, settings.showSeconds);
+        const std::wstring clock = CollapsedCardText(FormatIslandTime(local, settings.clockFollowSystem,
+                                                                      settings.use24HourClock, settings.showSeconds));
         metrics.clockWidth =
             MeasureTextWidthCached(WidestDigitForm(clock), fmt, idleClockWidthCache_);
 
@@ -7420,6 +11572,7 @@ class Renderer {
         // Green dot = camera in use, Orange dot = mic in use.
         // Drawn in top-right corner of pill, outside content area.
         DrawPrivacyDots(state, settings, unscaledRect, now);
+        DrawPomodoroMiniBar(unscaledRect);
 
         target_->SetTransform(oldTransform);
     }
@@ -8476,147 +12629,6 @@ class Renderer {
     // File Tray (#33): a shelf for files dragged onto the island. Rows are built
     // from the shared DrawCard primitive so the shelf matches every other
     // dashboard, with the real Explorer icon for each file.
-    void DrawFileTrayDashboard(const SharedState& state, D2D1_RECT_F rect,
-                               const Settings& settings, float scale) {
-        const float padX = FileTrayLayout::kPadX * scale;
-
-        // Header: title on the left, count chip on the right.
-        const D2D1_RECT_F headerRect = D2D1::RectF(rect.left + padX, rect.top + 18.0f * scale,
-                                                   rect.right - padX, rect.top + 38.0f * scale);
-        textBrush_->SetOpacity(0.96f);
-        if (boldTextFormat_) {
-            boldTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-            const wchar_t* title = Loc(L"File Tray");
-            target_->DrawTextW(title, static_cast<UINT32>(wcslen(title)), boldTextFormat_.Get(),
-                               headerRect, textBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
-            boldTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-        }
-
-        const size_t total = state.fileTrayItems.size();
-        if (total > 0 && smallTextFormat_) {
-            wchar_t countBuf[48] = {};
-            swprintf_s(countBuf, L"%zu %s", total,
-                       Loc(total == 1 ? L"item" : L"items"));
-            smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-            mutedBrush_->SetOpacity(0.75f);
-            target_->DrawTextW(countBuf, static_cast<UINT32>(wcslen(countBuf)),
-                               smallTextFormat_.Get(), headerRect, mutedBrush_.Get(),
-                               D2D1_DRAW_TEXT_OPTIONS_NONE);
-            smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-        }
-
-        const float listTop = rect.top + FileTrayLayout::kListTop * scale;
-        const float listBottom = rect.bottom - FileTrayLayout::kListBottomInset * scale;
-
-        if (state.fileTrayItems.empty()) {
-            // Empty state: a dashed drop target rather than a bare label, so it
-            // reads as an invitation.
-            const D2D1_RECT_F dropRect = D2D1::RectF(rect.left + padX, listTop,
-                                                      rect.right - padX, listBottom);
-            ComPtr<ID2D1SolidColorBrush> dash;
-            if (SUCCEEDED(target_->CreateSolidColorBrush(
-                    WithAlpha(material_.hairline, material_.hairline.a * 1.6f), &dash)) && dash) {
-                ComPtr<ID2D1StrokeStyle> dashStyle;
-                D2D1_STROKE_STYLE_PROPERTIES props = D2D1::StrokeStyleProperties();
-                props.dashStyle = D2D1_DASH_STYLE_DASH;
-                props.dashCap = D2D1_CAP_STYLE_ROUND;
-                d2dFactory_->CreateStrokeStyle(props, nullptr, 0, &dashStyle);
-                target_->DrawRoundedRectangle(D2D1::RoundedRect(dropRect, 12.0f * scale, 12.0f * scale),
-                                              dash.Get(), 1.4f, dashStyle.Get());
-            }
-
-            if (textFormat_) {
-                textFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-                const wchar_t* hint = Loc(L"Drag files here");
-                mutedBrush_->SetOpacity(0.80f);
-                target_->DrawTextW(hint, static_cast<UINT32>(wcslen(hint)), textFormat_.Get(),
-                                   dropRect, mutedBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
-                textFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-            }
-            mutedBrush_->SetOpacity(0.75f);
-            return;
-        }
-
-        const float rowH = FileTrayLayout::kRowHeight * scale;
-        const float rowGap = FileTrayLayout::kRowGap * scale;
-        const int capacity = FileTrayLayout::VisibleRowCapacity((rect.bottom - rect.top) / scale);
-
-        // Newest first: the file just dropped is the one the user wants.
-        int drawn = 0;
-        for (auto it = state.fileTrayItems.rbegin();
-             it != state.fileTrayItems.rend() && drawn < capacity; ++it, ++drawn) {
-            const FileTrayItem& item = *it;
-            const float rowTop = listTop + drawn * (rowH + rowGap);
-            const D2D1_RECT_F row = D2D1::RectF(rect.left + padX, rowTop, rect.right - padX, rowTop + rowH);
-
-            const bool hovered = (g_hoveredFileTrayRow.load(std::memory_order_relaxed) == drawn);
-            DrawCard(row, 9.0f * scale, hovered);
-
-            // Real shell icon when we managed to extract one, otherwise a glyph.
-            const D2D1_RECT_F iconRect = D2D1::RectF(row.left + 8.0f * scale, row.top + 6.0f * scale,
-                                                      row.left + 26.0f * scale, row.bottom - 6.0f * scale);
-            if (!item.icon.bgra.empty()) {
-                DrawBitmapPixels(item.icon, iconRect, fileTrayIconBitmap_, fileTrayIconGeneration_, 0.98f);
-            } else if (iconFormat_) {
-                const wchar_t* glyph = item.isDirectory ? L"\uE8B7" : L"\uE7C3";
-                accentBrush_->SetOpacity(0.85f);
-                target_->DrawTextW(glyph, 1, iconFormat_.Get(), iconRect, accentBrush_.Get(),
-                                   D2D1_DRAW_TEXT_OPTIONS_NONE);
-                accentBrush_->SetOpacity(1.0f);
-            }
-
-            wchar_t sizeBuf[40] = {};
-            if (item.isDirectory) {
-                wcscpy_s(sizeBuf, L"—");
-            } else if (item.sizeBytes >= 1073741824ull) {
-                swprintf_s(sizeBuf, L"%.1f GB", static_cast<double>(item.sizeBytes) / 1073741824.0);
-            } else if (item.sizeBytes >= 1048576ull) {
-                swprintf_s(sizeBuf, L"%.1f MB", static_cast<double>(item.sizeBytes) / 1048576.0);
-            } else if (item.sizeBytes >= 1024ull) {
-                swprintf_s(sizeBuf, L"%.0f KB", static_cast<double>(item.sizeBytes) / 1024.0);
-            } else {
-                swprintf_s(sizeBuf, L"%llu B", static_cast<unsigned long long>(item.sizeBytes));
-            }
-
-            const float sizeW = 66.0f * scale;
-            const D2D1_RECT_F nameRect = D2D1::RectF(row.left + 32.0f * scale, row.top,
-                                                      row.right - sizeW - 10.0f * scale, row.bottom);
-            if (smallTextFormat_) {
-                smallTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-                textBrush_->SetOpacity(0.94f);
-                target_->DrawTextW(item.name.c_str(), static_cast<UINT32>(item.name.size()),
-                                   smallTextFormat_.Get(), nameRect, textBrush_.Get(),
-                                   D2D1_DRAW_TEXT_OPTIONS_CLIP);
-
-                const D2D1_RECT_F sizeRect = D2D1::RectF(row.right - sizeW - 8.0f * scale, row.top,
-                                                          row.right - 10.0f * scale, row.bottom);
-                smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-                mutedBrush_->SetOpacity(0.70f);
-                target_->DrawTextW(sizeBuf, static_cast<UINT32>(wcslen(sizeBuf)),
-                                   smallTextFormat_.Get(), sizeRect, mutedBrush_.Get(),
-                                   D2D1_DRAW_TEXT_OPTIONS_NONE);
-                smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-                smallTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-            }
-        }
-
-        // "+N more" when the shelf holds more than fits.
-        if (static_cast<int>(total) > capacity && smallTextFormat_) {
-            wchar_t moreBuf[32] = {};
-            swprintf_s(moreBuf, L"+%d", static_cast<int>(total) - capacity);
-            const D2D1_RECT_F moreRect = D2D1::RectF(rect.left + padX, listBottom - 12.0f * scale,
-                                                      rect.right - padX, listBottom);
-            smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
-            mutedBrush_->SetOpacity(0.65f);
-            target_->DrawTextW(moreBuf, static_cast<UINT32>(wcslen(moreBuf)), smallTextFormat_.Get(),
-                               moreRect, mutedBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
-            smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-        }
-
-        textBrush_->SetOpacity(0.96f);
-        mutedBrush_->SetOpacity(0.75f);
-    }
-
     // Load colour is *semantic*, not decorative: the accent while a component is
     // comfortable, amber under pressure, red when saturated. The previous design
     // assigned a fixed rainbow colour per metric, which carried no information
@@ -8630,6 +12642,321 @@ class Renderer {
             return D2D1::ColorF(1.0f, 0.69f, 0.13f, 1.0f);
         }
         return material_.accent;
+    }
+
+    // ── Helpers for the Notes / Pomodoro / Widgets cards ──────────────────
+    void DrawCardText(const std::wstring& text, D2D1_RECT_F r, IDWriteTextFormat* format, ID2D1Brush* brush,
+                      DWRITE_TEXT_ALIGNMENT align) {
+        if (!format || text.empty()) return;
+        const DWRITE_TEXT_ALIGNMENT oldAlign = format->GetTextAlignment();
+        const DWRITE_PARAGRAPH_ALIGNMENT oldPara = format->GetParagraphAlignment();
+        format->SetTextAlignment(align);
+        format->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        target_->DrawTextW(text.c_str(), static_cast<UINT32>(text.size()), format, r, brush,
+                           D2D1_DRAW_TEXT_OPTIONS_CLIP);
+        format->SetTextAlignment(oldAlign);
+        format->SetParagraphAlignment(oldPara);
+    }
+
+    void DrawCardHeader(const wchar_t* title, D2D1_RECT_F rect) {
+        textBrush_->SetOpacity(0.96f);
+        DrawCardText(title, D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 12.0f,
+                                        rect.right - NotchCard::kPadX, rect.top + 34.0f),
+                     boldTextFormat_.Get(), textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+    }
+
+    D2D1_COLOR_F CardAccent() {
+        D2D1_COLOR_F accent = accentBrush_ ? accentBrush_->GetColor() : D2D1::ColorF(0x4cc9f0);
+        accent.a = 1.0f;
+        return accent;
+    }
+
+    static D2D1_RECT_F CardAt(D2D1_RECT_F rect, D2D1_RECT_F r) {
+        return D2D1::RectF(rect.left + r.left, rect.top + r.top, rect.left + r.right, rect.top + r.bottom);
+    }
+
+    // The time card's current view: the clock, the calendar or the weather.
+    void DrawTimeCard(const SharedState& state, D2D1_RECT_F rect, const Settings& settings, double now, float scale) {
+        SYSTEMTIME local = {};
+        GetLocalTime(&local);
+        const int view = TimeCardView(settings);
+        if (view == kTimeViewCalendar) {
+            DrawCalendarDashboard(state, rect, settings, now, scale, local);
+        } else if (view == kTimeViewWeather) {
+            const bool hasWeather = state.weather.hasData && (now - state.weather.lastUpdated < 3600.0);
+            std::wstring wIcon = L"\U0001F321️";
+            std::wstring wText = Loc(L"Loading...");
+            if (hasWeather) {
+                wText = state.weather.weatherDesc;
+                GetWeatherIconAndText(state.weather.weatherCode, wIcon, wText);
+            }
+            DrawWeatherDashboard(state, rect, settings, now, scale, hasWeather, wIcon, wText);
+        } else {
+            DrawTimeDashboard(state, rect, settings, now, scale, local);
+        }
+    }
+
+    // The notes card: the files dropped on the island (newest first), then the
+    // notes, three rows a page. A file row has copy and remove buttons where a
+    // note has pin and delete.
+    void DrawNotesCard(const SharedState& state, D2D1_RECT_F rect) {
+        NotesLoad();
+        DrawCardHeader(L"Notas", rect);
+        const float w = rect.right - rect.left;
+        ComPtr<ID2D1SolidColorBrush> fill;
+        target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.12f), &fill);
+        if (!fill) return;
+        const D2D1_COLOR_F accent = CardAccent();
+
+        const D2D1_RECT_F add = CardAt(rect, NotchCard::NotesNewButton(w));
+        target_->FillRoundedRectangle(D2D1::RoundedRect(add, 11.0f, 11.0f), fill.Get());
+        DrawCardText(L"+ Nueva", add, smallTextFormat_.Get(), textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        const int fileCount = static_cast<int>(state.fileTrayItems.size());
+        const int noteCount = static_cast<int>(g_notes.size());
+        const int total = fileCount + noteCount;
+        const int pages = std::max(1, (total + NotchCard::kNotesPerPage - 1) / NotchCard::kNotesPerPage);
+        g_notesPage = ClampInt(g_notesPage, 0, pages - 1);
+        if (pages > 1) {
+            DrawCardText(L"", CardAt(rect, NotchCard::NotesPrev(w)), iconFormat_.Get(), textBrush_.Get(),
+                         DWRITE_TEXT_ALIGNMENT_CENTER);
+            DrawCardText(L"", CardAt(rect, NotchCard::NotesNext(w)), iconFormat_.Get(), textBrush_.Get(),
+                         DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+
+        if (total == 0) {
+            mutedBrush_->SetOpacity(0.80f);
+            DrawCardText(L"Sin notas. Pulsa «+ Nueva» o arrastra un archivo aquí.",
+                         D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 70.0f,
+                                     rect.right - NotchCard::kRightInset, rect.top + 120.0f),
+                         smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+            mutedBrush_->SetOpacity(0.75f);
+            return;
+        }
+
+        for (int i = 0; i < NotchCard::kNotesPerPage; ++i) {
+            const int entry = g_notesPage * NotchCard::kNotesPerPage + i;
+            if (entry >= total) break;
+            const D2D1_RECT_F rowLocal = NotchCard::NotesRow(i, w);
+            const D2D1_RECT_F row = CardAt(rect, rowLocal);
+            const D2D1_RECT_F first = CardAt(rect, NotchCard::NotesPinButton(rowLocal));
+            const D2D1_RECT_F second = CardAt(rect, NotchCard::NotesDeleteButton(rowLocal));
+
+            if (entry < fileCount) {
+                const FileTrayItem& item = state.fileTrayItems[fileCount - 1 - entry];
+                fill->SetColor(D2D1::ColorF(1, 1, 1, 0.07f));
+                target_->FillRoundedRectangle(D2D1::RoundedRect(row, 12.0f, 12.0f), fill.Get());
+                const float cy = (row.top + row.bottom) * 0.5f;
+                const D2D1_RECT_F iconRect = D2D1::RectF(row.left + 10.0f, cy - 10.0f, row.left + 30.0f, cy + 10.0f);
+                if (!item.icon.bgra.empty()) {
+                    DrawBitmapPixels(item.icon, iconRect, fileTrayIconBitmap_, fileTrayIconGeneration_, 0.98f);
+                } else {
+                    DrawCardText(item.isDirectory ? L"" : L"", iconRect, iconFormat_.Get(),
+                                 accentBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+                }
+                DrawCardText(item.name, D2D1::RectF(row.left + 38.0f, row.top, first.left - 6.0f, row.bottom),
+                             textFormat_.Get(), textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+                DrawCardText(L"", first, iconFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+                DrawCardText(L"", second, iconFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+                continue;
+            }
+
+            const int index = entry - fileCount;
+            const bool pinned = index == g_pinnedNote;
+            fill->SetColor(pinned ? D2D1::ColorF(accent.r, accent.g, accent.b, 0.28f) : D2D1::ColorF(1, 1, 1, 0.07f));
+            target_->FillRoundedRectangle(D2D1::RoundedRect(row, 12.0f, 12.0f), fill.Get());
+            DrawCardText(NoteFirstLine(g_notes[index], 38), D2D1::RectF(row.left + 12.0f, row.top, first.left - 6.0f, row.bottom),
+                         textFormat_.Get(), textBrush_.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+            DrawCardText(pinned ? L"" : L"", first, iconFormat_.Get(),
+                         pinned ? textBrush_.Get() : mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+            DrawCardText(L"", second, iconFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+    }
+
+    void DrawPomodoroTab(D2D1_RECT_F rect) {
+        PomoEnsureInit();
+        DrawCardHeader(L"Pomodoro", rect);
+        const float w = rect.right - rect.left;
+        const bool focus = g_pomo.phase == PomoPhase::Focus;
+        const std::wstring phase = PomoFlashing() ? g_pomo.flashText
+                                                  : (focus ? L"Concentración" : L"Descanso");
+        DrawCardText(phase, D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 12.0f,
+                                        rect.right - NotchCard::kRightInset, rect.top + 34.0f),
+                     smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_TRAILING);
+
+        DrawCardText(PomoClockText(), CardAt(rect, D2D1::RectF(NotchCard::kPadX, 34.0f, w - NotchCard::kRightInset, 92.0f)),
+                     hugeTextFormat_ ? hugeTextFormat_.Get() : clockFormat_.Get(), textBrush_.Get(),
+                     DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        ComPtr<ID2D1SolidColorBrush> fill;
+        target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.14f), &fill);
+        if (!fill) return;
+        const D2D1_COLOR_F accent = CardAccent();
+        const D2D1_RECT_F track = CardAt(rect, D2D1::RectF(48.0f, 98.0f, w - 58.0f, 104.0f));
+        target_->FillRoundedRectangle(D2D1::RoundedRect(track, 3.0f, 3.0f), fill.Get());
+        const float progress = PomoProgress();
+        if (progress > 0.0f) {
+            fill->SetColor(focus ? accent : D2D1::ColorF(0.30f, 0.80f, 0.45f, 1.0f));
+            target_->FillRoundedRectangle(
+                D2D1::RoundedRect(D2D1::RectF(track.left, track.top, track.left + (track.right - track.left) * progress,
+                                              track.bottom), 3.0f, 3.0f), fill.Get());
+        }
+
+        const float cx = rect.left + NotchCard::PomoCenterX(w);
+        const float cy = rect.top + NotchCard::kPomoButtonsY;
+        const wchar_t* glyphs[3] = {L"", g_pomo.running ? L"" : L"", L""};
+        for (int i = -1; i <= 1; ++i) {
+            const float bx = cx + i * NotchCard::kPomoButtonSpacing;
+            const float r = NotchCard::kPomoButtonRadius + (i == 0 ? 3.0f : 0.0f);
+            fill->SetColor(i == 0 ? accent : D2D1::ColorF(1, 1, 1, 0.12f));
+            target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(bx, cy), r, r), fill.Get());
+            DrawCardText(glyphs[i + 1], D2D1::RectF(bx - r, cy - r, bx + r, cy + r), iconFormat_.Get(), textBrush_.Get(),
+                         DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+
+        wchar_t footer[64] = {};
+        swprintf_s(footer, L"%d min · descanso %d min · hechos: %d", ClampInt(g_settings.pomodoroFocusMinutes, 1, 180),
+                   ClampInt(g_settings.pomodoroBreakMinutes, 1, 180), g_pomo.completedFocus);
+        mutedBrush_->SetOpacity(0.70f);
+        DrawCardText(footer, D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 162.0f,
+                                         rect.right - NotchCard::kRightInset, rect.top + 180.0f),
+                     smallTextFormat_.Get(), mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+        mutedBrush_->SetOpacity(0.75f);
+    }
+
+    void DrawWidgetsTab(D2D1_RECT_F rect) {
+        DrawCardHeader(L"Widgets", rect);
+        const float w = rect.right - rect.left;
+        ComPtr<ID2D1SolidColorBrush> fill;
+        target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.08f), &fill);
+        if (!fill) return;
+        const D2D1_COLOR_F accent = CardAccent();
+        for (int i = 0; i < static_cast<int>(ARRAYSIZE(kWidgetDefs)); ++i) {
+            const WidgetDef& widget = kWidgetDefs[i];
+            const bool on = g_settings.*(widget.field);
+            const D2D1_RECT_F chip = CardAt(rect, NotchCard::WidgetChip(i, w));
+            fill->SetColor(on ? D2D1::ColorF(accent.r, accent.g, accent.b, 0.85f) : D2D1::ColorF(1, 1, 1, 0.08f));
+            target_->FillRoundedRectangle(D2D1::RoundedRect(chip, 14.0f, 14.0f), fill.Get());
+            DrawCardText(widget.glyph, D2D1::RectF(chip.left + 6.0f, chip.top, chip.left + 30.0f, chip.bottom),
+                         iconFormat_.Get(), on ? textBrush_.Get() : mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_CENTER);
+            DrawCardText(widget.label, D2D1::RectF(chip.left + 32.0f, chip.top, chip.right - 8.0f, chip.bottom),
+                         smallTextFormat_.Get(), on ? textBrush_.Get() : mutedBrush_.Get(), DWRITE_TEXT_ALIGNMENT_LEADING);
+        }
+    }
+
+    // A thin progress bar along the bottom of the collapsed pill while a
+    // Pomodoro is running or paused.
+    void DrawPomodoroMiniBar(D2D1_RECT_F rect) {
+        if (!PomoActive() || PomoFlashing() || !g_pomo.running) return;
+        const float h = rect.bottom - rect.top;
+        const float w = rect.right - rect.left;
+        if (h > MediaLayout::kExpandedMinHeight || h < 12.0f || w < 40.0f) return;
+        const float inset = std::min(h * 0.5f, 18.0f);
+        const D2D1_RECT_F track = D2D1::RectF(rect.left + inset, rect.bottom - 6.0f, rect.right - inset, rect.bottom - 3.0f);
+        ComPtr<ID2D1SolidColorBrush> fill;
+        target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.18f), &fill);
+        if (!fill) return;
+        target_->FillRoundedRectangle(D2D1::RoundedRect(track, 1.5f, 1.5f), fill.Get());
+        fill->SetColor(g_pomo.phase == PomoPhase::Focus ? CardAccent() : D2D1::ColorF(0.30f, 0.80f, 0.45f, 1.0f));
+        target_->FillRoundedRectangle(
+            D2D1::RoundedRect(D2D1::RectF(track.left, track.top, track.left + (track.right - track.left) * PomoProgress(),
+                                          track.bottom), 1.5f, 1.5f), fill.Get());
+    }
+
+    // The notch's Control Center card: four live status buttons and a hint.
+    // A click on the card drops the full panel down from the notch.
+    void DrawControlCenterTab(const SharedState& state, D2D1_RECT_F rect, const Settings& settings, float scale) {
+        (void)settings;
+        {
+            // Refresh the live status promptly when the card first appears; the
+            // worker keeps polling on its own while the card stays visible.
+            const ULONGLONG nowTick = GetTickCount64();
+            if (nowTick - g_ccTabSeenTick.exchange(nowTick) > 3000) {
+                CcWake();
+            }
+        }
+
+        const float padX = 24.0f * scale;
+        textBrush_->SetOpacity(0.96f);
+        const wchar_t* title = L"Centro de control";
+        if (boldTextFormat_) {
+            boldTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+            target_->DrawTextW(title, static_cast<UINT32>(wcslen(title)), boldTextFormat_.Get(),
+                               D2D1::RectF(rect.left + padX, rect.top + 16.0f * scale,
+                                           rect.right - padX, rect.top + 32.0f * scale),
+                               textBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
+            boldTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+        }
+
+        const CcStatus s = CcGetStatus();
+        const float volume = state.system.volumePercent / 100.0f;
+        const bool muted = state.system.volumeMuted;
+        wchar_t volumeLabel[16] = {};
+        swprintf_s(volumeLabel, L"%d%%", muted ? 0 : state.system.volumePercent);
+
+        struct Button { const wchar_t* glyph; bool on; std::wstring label; };
+        const Button buttons[4] = {
+            {CcNetworkGlyph(s), s.netConnected, s.wifiPresent ? L"Wi-Fi" : L"Red"},
+            {CcGlyph::kBluetooth, s.btOn, L"Bluetooth"},
+            {CcVolumeGlyph(volume, muted), !muted, volumeLabel},
+            {CcGlyph::kMoon, g_isDnDActive.load(), L"No molestar"},
+        };
+
+        D2D1_COLOR_F accent = accentBrush_ ? accentBrush_->GetColor() : D2D1::ColorF(0x4cc9f0);
+        accent.a = 1.0f;
+        ComPtr<ID2D1SolidColorBrush> fill;
+        target_->CreateSolidColorBrush(accent, &fill);
+        if (!fill) {
+            return;
+        }
+
+        const float radius = 19.0f * scale;
+        const float cy = rect.top + (rect.bottom - rect.top) * 0.47f;
+        const float slot = (rect.right - rect.left - padX * 2.0f) / 4.0f;
+        const DWRITE_TEXT_ALIGNMENT iconAlign = iconFormat_ ? iconFormat_->GetTextAlignment()
+                                                            : DWRITE_TEXT_ALIGNMENT_CENTER;
+        const DWRITE_PARAGRAPH_ALIGNMENT iconPara = iconFormat_ ? iconFormat_->GetParagraphAlignment()
+                                                                : DWRITE_PARAGRAPH_ALIGNMENT_CENTER;
+        const DWRITE_TEXT_ALIGNMENT smallAlign = smallTextFormat_ ? smallTextFormat_->GetTextAlignment()
+                                                                  : DWRITE_TEXT_ALIGNMENT_LEADING;
+        if (iconFormat_) {
+            iconFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+            iconFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        }
+        if (smallTextFormat_) smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+
+        for (int i = 0; i < 4; ++i) {
+            const Button& b = buttons[i];
+            const float cx = rect.left + padX + slot * (i + 0.5f);
+            fill->SetColor(b.on ? accent : D2D1::ColorF(1.0f, 1.0f, 1.0f, 0.14f));
+            target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(cx, cy), radius, radius), fill.Get());
+            if (iconFormat_) {
+                target_->DrawTextW(b.glyph, static_cast<UINT32>(wcslen(b.glyph)), iconFormat_.Get(),
+                                   D2D1::RectF(cx - radius, cy - radius, cx + radius, cy + radius),
+                                   textBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
+            }
+            if (smallTextFormat_) {
+                target_->DrawTextW(b.label.c_str(), static_cast<UINT32>(b.label.size()), smallTextFormat_.Get(),
+                                   D2D1::RectF(cx - slot * 0.5f, cy + radius + 4.0f * scale,
+                                               cx + slot * 0.5f, cy + radius + 20.0f * scale),
+                                   mutedBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
+            }
+        }
+
+        if (smallTextFormat_) {
+            const wchar_t* hint = g_ccNotchOpen.load() ? L"Clic para cerrar" : L"Clic para abrir el centro de control";
+            mutedBrush_->SetOpacity(0.70f);
+            target_->DrawTextW(hint, static_cast<UINT32>(wcslen(hint)), smallTextFormat_.Get(),
+                               D2D1::RectF(rect.left + padX, rect.bottom - 30.0f * scale,
+                                           rect.right - padX, rect.bottom - 12.0f * scale),
+                               mutedBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_CLIP);
+            mutedBrush_->SetOpacity(0.75f);
+            smallTextFormat_->SetTextAlignment(smallAlign);
+        }
+        if (iconFormat_) {
+            iconFormat_->SetTextAlignment(iconAlign);
+            iconFormat_->SetParagraphAlignment(iconPara);
+        }
     }
 
     void DrawHardwareMonitorDashboard(const SharedState& state, D2D1_RECT_F rect, const Settings& settings, float scale) {
@@ -8952,9 +13279,9 @@ class Renderer {
 
         SYSTEMTIME local = {};
         GetLocalTime(&local);
-        const std::wstring collapsedTime = FormatIslandTime(local, settings.clockFollowSystem,
-                                                            settings.use24HourClock,
-                                                            settings.showSeconds);
+        const std::wstring collapsedTime = CollapsedCardText(FormatIslandTime(local, settings.clockFollowSystem,
+                                                                              settings.use24HourClock,
+                                                                              settings.showSeconds));
         const wchar_t* timeBuf = collapsedTime.c_str();
 
         const float scale = 1.0f;
@@ -9079,24 +13406,19 @@ class Renderer {
                                    dashFadeLayer.Get());
             }
 
-            // Expanded Mode. Order must match ActiveTabCount()/FileTrayTabIndex().
-            std::vector<int> activeTabs;
-            activeTabs.push_back(3); // Time (shown first when the island expands/on hover)
-            activeTabs.push_back(0); // Calendar
-            if (settings.weather) activeTabs.push_back(1);
-            if (settings.hardwareMonitorModule) activeTabs.push_back(2);
-            if (settings.fileTrayModule) activeTabs.push_back(4);
-
+            // Expanded Mode. Cards come from TabOrder(), shared with the hit tests.
+            g_tabsMediaMode = false;
+            const std::vector<int> activeTabs = TabOrder(settings, false);
             int maxTabs = static_cast<int>(activeTabs.size());
             int tabIdx = NormalizedTabIndex(settings);
             if (tabIdx >= maxTabs) tabIdx = maxTabs - 1;
-            int activeTabId = activeTabs[tabIdx];
+            const int activeTabId = activeTabs[tabIdx];
 
-            if (activeTabId == 3) DrawTimeDashboard(state, rect, settings, now, scale, local);
-            else if (activeTabId == 0) DrawCalendarDashboard(state, rect, settings, now, scale, local);
-            else if (activeTabId == 1) DrawWeatherDashboard(state, rect, settings, now, scale, hasWeather, wIcon, wText);
-            else if (activeTabId == 2) DrawHardwareMonitorDashboard(state, rect, settings, scale);
-            else if (activeTabId == 4) DrawFileTrayDashboard(state, rect, settings, scale);
+            if (activeTabId == kTabPrimary) DrawTimeCard(state, rect, settings, now, scale);
+            else if (activeTabId == kTabControl) DrawControlCenterTab(state, rect, settings, scale);
+            else if (activeTabId == kTabNotes) DrawNotesCard(state, rect);
+            else if (activeTabId == kTabPomodoro) DrawPomodoroTab(rect);
+            else if (activeTabId == kTabWidgets) DrawWidgetsTab(rect);
 
             // Pagination dots (Vertical on the right edge)
             if (maxTabs > 1) {
@@ -9123,9 +13445,6 @@ class Renderer {
             }
         }
 
-        if (expandedAlpha <= 0.01f) {
-            g_idleTab = 0;
-        }
 
         if (haveDashMask) target_->PopLayer(); else target_->PopAxisAlignedClip();
     }
@@ -9366,20 +13685,17 @@ class Renderer {
         if (expandedAlpha > 0.01f && mask && layer) {
             target_->PushLayer(D2D1::LayerParameters(rect, mask.Get(), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE, D2D1::IdentityMatrix(), expandedAlpha, nullptr, D2D1_LAYER_OPTIONS_NONE), layer.Get());
 
-            // Order must match ActiveTabCount()/FileTrayTabIndex().
-            std::vector<int> activeTabs;
-            activeTabs.push_back(0); // Media
-            activeTabs.push_back(1); // Calendar
-            if (settings.weather) activeTabs.push_back(2);
-            if (settings.hardwareMonitorModule) activeTabs.push_back(3);
-            if (settings.fileTrayModule) activeTabs.push_back(4);
-
-            // Same settings object as the list above, so the index can't be
-            // normalised against a tab set that no longer matches.
+            // Cards come from TabOrder(), shared with the hit tests.
+            g_tabsMediaMode = true;
+            const std::vector<int> activeTabs = TabOrder(settings, true);
             int maxTabs = static_cast<int>(activeTabs.size());
             int tabIdx = NormalizedTabIndex(settings);
             if (tabIdx >= maxTabs) tabIdx = maxTabs - 1;
-            int activeTabId = activeTabs[tabIdx];
+            const int tabKind = activeTabs[tabIdx];
+            // The branches below keep their original numbering.
+            const int activeTabId = tabKind == kTabPrimary ? 0
+                                  : tabKind == kTabControl ? 3
+                                  : 100 + tabKind;
 
             if (activeTabId == 0) {
                 // Expanded Apple DI media: large square art on left, text center.
@@ -9536,21 +13852,16 @@ class Renderer {
                                   D2D1::Point2F(cx, cy),
                                   D2D1::Point2F(cx + MediaLayout::kControlSpacing, cy),
                                   now);
-            } else if (activeTabId == 1) {
-                SYSTEMTIME local = {}; GetLocalTime(&local);
-                DrawCalendarDashboard(state, rect, settings, now, 1.0f, local);
-            } else if (activeTabId == 2) {
-                bool hasWeather = state.weather.hasData && (now - state.weather.lastUpdated < 3600.0);
-                std::wstring wIcon = L"🌡️"; std::wstring wText = Loc(L"Loading...");
-                if (hasWeather) {
-                    wText = state.weather.weatherDesc;
-                    GetWeatherIconAndText(state.weather.weatherCode, wIcon, wText);
-                }
-                DrawWeatherDashboard(state, rect, settings, now, 1.0f, hasWeather, wIcon, wText);
             } else if (activeTabId == 3) {
-                DrawHardwareMonitorDashboard(state, rect, settings, 1.0f);
-            } else if (activeTabId == 4) {
-                DrawFileTrayDashboard(state, rect, settings, 1.0f);
+                DrawControlCenterTab(state, rect, settings, 1.0f);
+            } else if (tabKind == kTabClock) {
+                DrawTimeCard(state, rect, settings, now, 1.0f);
+            } else if (tabKind == kTabNotes) {
+                DrawNotesCard(state, rect);
+            } else if (tabKind == kTabPomodoro) {
+                DrawPomodoroTab(rect);
+            } else if (tabKind == kTabWidgets) {
+                DrawWidgetsTab(rect);
             }
 
             // Pagination dots (Vertical on the right edge)
@@ -9579,7 +13890,6 @@ class Renderer {
 
         // Collapsed UI
         if (collapsedAlpha > 0.01f && mask && layer) {
-            g_idleTab = 0;
             target_->PushLayer(D2D1::LayerParameters(rect, mask.Get(), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE, D2D1::IdentityMatrix(), collapsedAlpha, nullptr, D2D1_LAYER_OPTIONS_NONE), layer.Get());
 
             const float cy = (rect.top + rect.bottom) * 0.5f;
@@ -11072,6 +15382,7 @@ std::atomic<int64_t> g_lastMouseWakeCheckMs = 0;
 LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION && wParam == WM_MOUSEMOVE &&
         g_settings.unhideOnHover &&
+        !g_barModeActive.load(std::memory_order_relaxed) &&
         g_autoHiddenParked.load(std::memory_order_relaxed)) {
         const int64_t nowMs = static_cast<int64_t>(GetTickCount64());
         const int64_t last = g_lastMouseWakeCheckMs.load(std::memory_order_relaxed);
@@ -11099,6 +15410,7 @@ LRESULT CALLBACK LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam) {
 // to the parked state means it exists only while the island is actually hidden.
 static bool MouseWakeHookWanted() {
     return g_settings.unhideOnHover &&
+           !g_barModeActive.load(std::memory_order_relaxed) &&
            g_autoHiddenParked.load(std::memory_order_relaxed);
 }
 
@@ -11146,6 +15458,87 @@ DWORD WINAPI MouseThreadProc(void*) {
     return 0;
 }
 
+// ── Files on the notes card ──────────────────────────────────────────────────
+
+FileTrayItem MakeFileTrayItem(const std::wstring& path) {
+    FileTrayItem item;
+    item.path = path;
+    // BaseNameFromPath instead of PathFindFileNameW so we do not pull in
+    // shlwapi just for this.
+    item.name = BaseNameFromPath(path);
+    if (item.name.empty()) {
+        item.name = path;
+    }
+    WIN32_FILE_ATTRIBUTE_DATA attr = {};
+    if (GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &attr)) {
+        item.isDirectory = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        item.sizeBytes = (static_cast<uint64_t>(attr.nFileSizeHigh) << 32) | attr.nFileSizeLow;
+    }
+    // The real Explorer icon, so the list looks native.
+    SHFILEINFOW info = {};
+    if (SHGetFileInfoW(path.c_str(), 0, &info, sizeof(info), SHGFI_ICON | SHGFI_SMALLICON) && info.hIcon) {
+        IconToPixels(info.hIcon, 32, &item.icon);
+        DestroyIcon(info.hIcon);
+    }
+    return item;
+}
+
+// Re-adding a file moves it to the top instead of listing it twice; the oldest
+// go once the list is over File tray max items.
+void FileTrayAdd(std::vector<FileTrayItem> items) {
+    std::lock_guard lock(g_stateMutex);
+    for (auto& item : items) {
+        auto existing = std::find_if(g_state.fileTrayItems.begin(), g_state.fileTrayItems.end(),
+                                     [&](const FileTrayItem& other) {
+                                         return _wcsicmp(other.path.c_str(), item.path.c_str()) == 0;
+                                     });
+        if (existing != g_state.fileTrayItems.end()) {
+            g_state.fileTrayItems.erase(existing);
+        }
+        g_state.fileTrayItems.push_back(std::move(item));
+    }
+    const size_t cap = static_cast<size_t>(std::max(1, g_settings.fileTrayMaxItems));
+    while (g_state.fileTrayItems.size() > cap) {
+        g_state.fileTrayItems.erase(g_state.fileTrayItems.begin());
+    }
+}
+
+// Brings back the files saved by FileTraySave, skipping any that are gone.
+void FileTrayLoad() {
+    std::vector<wchar_t> buffer(65536, L'\0');
+    Wh_GetStringValue(L"TrayFiles", buffer.data(), buffer.size());
+    buffer.back() = L'\0';
+    const std::wstring all = buffer.data();
+    std::vector<FileTrayItem> items;
+    size_t start = 0;
+    while (start < all.size()) {
+        const size_t end = all.find(kNoteSeparator, start);
+        const std::wstring path = all.substr(start, end == std::wstring::npos ? std::wstring::npos : end - start);
+        if (!path.empty() && GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES) {
+            items.push_back(MakeFileTrayItem(path));
+        }
+        if (end == std::wstring::npos) break;
+        start = end + 1;
+    }
+    if (!items.empty()) {
+        FileTrayAdd(std::move(items));
+    }
+}
+
+// The artwork, title and artist of the expanded media card: the only place a
+// single click opens the playing app (a double-click anywhere does too).
+bool MediaTitleHitTest(const MediaContentPoint& pt) {
+    if (!pt.valid || pt.height <= MediaLayout::kExpandedMinHeight) {
+        return false;
+    }
+    return pt.x >= MediaLayout::kArtInsetX && pt.x <= pt.width - 72.0f &&
+           pt.y >= MediaLayout::kArtInsetY && pt.y <= MediaLayout::kArtInsetY + MediaLayout::kArtSize;
+}
+
+// Set by a double-click so the button-up that follows it is not also handled
+// as a single click.
+bool g_suppressNextIslandClick = false;
+
 LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     static POINT s_touchStart = {0, 0};
     static ULONGLONG s_touchStartTime = 0;
@@ -11161,8 +15554,9 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             return 0;
 
         case WM_DROPFILES: {
+            // A dropped file joins the notes card's list.
             HDROP drop = reinterpret_cast<HDROP>(wParam);
-            if (!g_settings.fileTrayModule) {
+            if (!g_settings.notesModule && !g_settings.fileTrayModule) {
                 DragFinish(drop);
                 return 0;
             }
@@ -11170,66 +15564,23 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             const UINT count = DragQueryFileW(drop, 0xFFFFFFFF, nullptr, 0);
             std::vector<FileTrayItem> added;
             added.reserve(count);
-
             for (UINT i = 0; i < count; ++i) {
                 wchar_t path[MAX_PATH] = {};
-                if (DragQueryFileW(drop, i, path, ARRAYSIZE(path)) == 0) {
-                    continue;
+                if (DragQueryFileW(drop, i, path, ARRAYSIZE(path)) != 0) {
+                    added.push_back(MakeFileTrayItem(path));
                 }
-
-                FileTrayItem item;
-                item.path = path;
-
-                // BaseNameFromPath instead of PathFindFileNameW so we do not
-                // pull in shlwapi just for this.
-                item.name = BaseNameFromPath(path);
-                if (item.name.empty()) {
-                    item.name = path;
-                }
-
-                WIN32_FILE_ATTRIBUTE_DATA attr = {};
-                if (GetFileAttributesExW(path, GetFileExInfoStandard, &attr)) {
-                    item.isDirectory = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-                    item.sizeBytes = (static_cast<uint64_t>(attr.nFileSizeHigh) << 32) | attr.nFileSizeLow;
-                }
-
-                // Grab the real Explorer icon so the shelf looks native.
-                SHFILEINFOW info = {};
-                if (SHGetFileInfoW(path, 0, &info, sizeof(info), SHGFI_ICON | SHGFI_SMALLICON) && info.hIcon) {
-                    IconToPixels(info.hIcon, 32, &item.icon);
-                    DestroyIcon(info.hIcon);
-                }
-
-                added.push_back(std::move(item));
             }
             DragFinish(drop);
 
             if (!added.empty()) {
-                std::lock_guard lock(g_stateMutex);
-                for (auto& item : added) {
-                    // Re-dropping a file promotes the existing entry instead of
-                    // creating a duplicate.
-                    auto existing = std::find_if(g_state.fileTrayItems.begin(), g_state.fileTrayItems.end(),
-                                                 [&](const FileTrayItem& other) {
-                                                     return _wcsicmp(other.path.c_str(), item.path.c_str()) == 0;
-                                                 });
-                    if (existing != g_state.fileTrayItems.end()) {
-                        g_state.fileTrayItems.erase(existing);
-                    }
-                    g_state.fileTrayItems.push_back(std::move(item));
-                }
-
-                const size_t cap = static_cast<size_t>(std::max(1, g_settings.fileTrayMaxItems));
-                while (g_state.fileTrayItems.size() > cap) {
-                    g_state.fileTrayItems.erase(g_state.fileTrayItems.begin());
-                }
+                FileTrayAdd(std::move(added));
+                FileTraySave();
             }
 
-            // Jump to the shelf so the drop is visibly acknowledged.
-            const int trayTab = FileTrayTabIndex(g_settings);
-            if (trayTab >= 0) {
-                g_idleTab = trayTab;
-            }
+            // Jump to the notes card, on its first page, so the drop is visibly
+            // acknowledged.
+            SelectTab(kTabNotes);
+            g_notesPage = 0;
             g_layoutDirty = true;
             return 0;
         }
@@ -11384,13 +15735,6 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                         return TRUE;
                     }
                 }
-
-                // A File Tray row under the cursor is clickable (opens the file).
-                if (g_settings.fileTrayModule && currentTab == FileTrayTabIndex(g_settings) &&
-                    g_hoveredFileTrayRow.load(std::memory_order_relaxed) >= 0) {
-                    SetCursor(LoadCursorW(nullptr, IDC_HAND));
-                    return TRUE;
-                }
             }
             break;
 
@@ -11483,21 +15827,6 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             if (g_hoveredMediaButton.exchange(hovered) != hovered) {
                 g_layoutDirty = true;
             }
-
-            // File Tray row highlight.
-            int hoveredRow = -1;
-            if (g_settings.fileTrayModule && currentTab == FileTrayTabIndex(g_settings)) {
-                size_t trayCount = 0;
-                {
-                    std::lock_guard lock(g_stateMutex);
-                    trayCount = g_state.fileTrayItems.size();
-                }
-                hoveredRow = FileTrayRowAtContentPoint(MediaContentFromClient(xPos, yPos),
-                                                       static_cast<int>(trayCount));
-            }
-            if (g_hoveredFileTrayRow.exchange(hoveredRow) != hoveredRow) {
-                g_layoutDirty = true;
-            }
             return 0;
         }
 
@@ -11550,6 +15879,12 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     g_layoutDirty = true;
                 }
 
+                if (g_suppressNextIslandClick) {
+                    g_suppressNextIslandClick = false;
+                    s_touchStartTime = 0;
+                    return 0;
+                }
+
                 int xPos = GET_X_LPARAM(lParam);
                 int yPos = GET_Y_LPARAM(lParam);
 
@@ -11560,9 +15895,9 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                         const int maxTabs = ActiveTabCount(g_settings);
                         if (maxTabs > 1) {
                             if (dx > 0) { // Swipe right -> previous tab
-                                g_idleTab = (g_idleTab - 1 + maxTabs) % maxTabs;
+                                SelectTabOffset(g_settings, -1, true);
                             } else { // Swipe left -> next tab
-                                g_idleTab = (g_idleTab + 1) % maxTabs;
+                                SelectTabOffset(g_settings, 1, true);
                             }
                             g_layoutDirty = true;
                         }
@@ -11598,32 +15933,6 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
                 const MediaContentPoint cp = MediaContentFromClient(xPos, yPos);
 
-                // File Tray: clicking a row opens that file with its default app.
-                if (g_settings.fileTrayModule && currentTab == FileTrayTabIndex(g_settings)) {
-                    std::wstring toOpen;
-                    {
-                        std::lock_guard lock(g_stateMutex);
-                        const int row = FileTrayRowAtContentPoint(
-                            cp, static_cast<int>(g_state.fileTrayItems.size()));
-                        if (row >= 0) {
-                            // Rows render newest-first, so map back from the end.
-                            const size_t index = g_state.fileTrayItems.size() - 1 - static_cast<size_t>(row);
-                            toOpen = g_state.fileTrayItems[index].path;
-                        }
-                    }
-                    if (!toOpen.empty()) {
-                        SHELLEXECUTEINFOW sei = {sizeof(sei)};
-                        sei.fMask = SEE_MASK_FLAG_NO_UI;
-                        sei.lpFile = toOpen.c_str();
-                        sei.nShow = SW_SHOWNORMAL;
-                        ShellExecuteExW(&sei);
-                        return 0;
-                    }
-                    // A click on the empty shelf should not fall through to
-                    // "focus the media app".
-                    return 0;
-                }
-
                 if (mediaActive && currentTab == 0) {
                     const int cmd = MediaTransportHitTest(cp);
                     if (cmd != -1) {
@@ -11640,21 +15949,42 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     }
                 }
 
-                if (height > 50.0f) {
-                    if (mediaActive) {
-                        if (currentTab == 0) {
+                // The client area carries kRenderPadY above and below the pill, so
+                // the pill's own height decides whether it is expanded.
+                const float pillHeight = cp.valid ? cp.height * g_settings.sizeScale
+                                                  : height - kRenderPadY * 2.0f;
+                const bool islandExpanded = pillHeight > 80.0f * g_settings.sizeScale;
+
+                if (islandExpanded) {
+                    const int tabId = CurrentTabId(g_settings);
+                    if (tabId == kTabControl) {
+                        CcToggleFromNotch();
+                    } else if (tabId == TimeCardTab() && (tabId == kTabClock || !mediaActive) &&
+                               TimeCardViews(g_settings).size() > 1) {
+                        // The time card rotates: clock, calendar, weather.
+                        TimeCardNextView(g_settings);
+                        g_layoutDirty = true;
+                    } else if (tabId == kTabNotes) {
+                        NotesHandleClick(hwnd, cp);
+                    } else if (tabId == kTabPomodoro) {
+                        PomodoroHandleClick(cp);
+                    } else if (tabId == kTabWidgets) {
+                        WidgetsHandleClick(cp);
+                    } else if (mediaActive) {
+                        // Only the artwork and title open the playing app; a click
+                        // elsewhere on the card does nothing.
+                        if (currentTab == 0 && g_tabsMediaMode.load() && MediaTitleHitTest(cp)) {
                             OpenRelevantApp();
                         }
                     } else if (kinds.empty() || kinds[0] != IslandKind::Idle) {
                         HandleStatusClickAtPoint(hwnd, lParam);
                     }
                 } else {
-                    if (mediaActive) {
-                        OpenRelevantApp();
-                    } else {
-                        HandleStatusClickAtPoint(hwnd, lParam);
-                    }
+                    // Collapsed: a click opens the island just like hovering.
+                    g_clickExpanded = true;
+                    g_layoutDirty = true;
                 }
+                (void)height;
             }
             return 0;
 
@@ -11662,9 +15992,30 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             ToggleEndpointMute();
             return 0;
 
-        case WM_LBUTTONDBLCLK:
-            Wh_SetIntValue(L"PinnedExpanded", Wh_GetIntValue(L"PinnedExpanded", 0) ? 0 : 1);
+        case WM_LBUTTONDBLCLK: {
+            // Double-click opens the playing app straight from the notch.
+            // (Pinning the island open stays in the right-click menu.)
+            const MediaContentPoint cp = MediaContentFromClient(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+            if (MediaTransportHitTest(cp) != -1 || MediaScrubFractionFromContent(cp) >= 0.0f) {
+                // Quick presses on a media button are two presses, not a double-click.
+                return OverlayWndProc(hwnd, WM_LBUTTONDOWN, wParam, lParam);
+            }
+            if (cp.valid && cp.height * g_settings.sizeScale > 80.0f * g_settings.sizeScale &&
+                CurrentTabId(g_settings) != kTabPrimary) {
+                // On the interactive cards a double-click is simply two clicks.
+                return OverlayWndProc(hwnd, WM_LBUTTONDOWN, wParam, lParam);
+            }
+            g_suppressNextIslandClick = true;
+            bool mediaActive = false;
+            {
+                std::lock_guard lock(g_stateMutex);
+                mediaActive = g_settings.media && g_state.media.available;
+            }
+            if (mediaActive) {
+                OpenRelevantApp();
+            }
             return 0;
+        }
 
         case WM_MOUSEWHEEL: {
             static ULONGLONG lastScrollTime = 0;
@@ -11674,10 +16025,11 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
             const int maxTabs = ActiveTabCount(g_settings);
             int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            (void)maxTabs;
             if (delta > 0) {
-                if (g_idleTab > 0) g_idleTab--;
+                SelectTabOffset(g_settings, -1, false);
             } else if (delta < 0) {
-                if (g_idleTab < maxTabs - 1) g_idleTab++;
+                SelectTabOffset(g_settings, 1, false);
             }
 
             g_layoutDirty = true;
@@ -11757,6 +16109,7 @@ DWORD WINAPI RenderThreadProc(void*) {
     WNDCLASSEXW wc = {};
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = OverlayWndProc;
+    wc.style = CS_DBLCLKS;
     wc.hInstance = GetModuleHandleW(nullptr);
     wc.lpszClassName = kWindowClass;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
@@ -11801,6 +16154,42 @@ DWORD WINAPI RenderThreadProc(void*) {
     ApplyBackdropMaterial(hwnd);
     ShowWindow(hwnd, SW_SHOWNOACTIVATE);
 
+    // The top bar lives on this thread too, so its timer and paint messages are
+    // dispatched by the render loop below, including while the island is parked.
+    WNDCLASSEXW topBarWc = {};
+    topBarWc.cbSize = sizeof(topBarWc);
+    topBarWc.lpfnWndProc = TopBarWndProc;
+    topBarWc.hInstance = wc.hInstance;
+    topBarWc.lpszClassName = kTopBarClass;
+    topBarWc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    RegisterClassExW(&topBarWc);
+    g_topBarHwnd = CreateWindowExW(
+        WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+        kTopBarClass, L"Dynamic Island Top Bar", WS_POPUP, 0, 0, 16, 16,
+        nullptr, nullptr, wc.hInstance, nullptr);
+    if (g_topBarHwnd) {
+        SetLayeredWindowAttributes(g_topBarHwnd, 0, 255, LWA_ALPHA);
+        SetTimer(g_topBarHwnd, kTopBarTimerId, kTopBarTickMs, nullptr);
+    } else {
+        Wh_Log(L"Failed to create the top bar window.");
+    }
+
+    WNDCLASSEXW ccWc = {};
+    ccWc.cbSize = sizeof(ccWc);
+    ccWc.lpfnWndProc = CcWndProc;
+    ccWc.hInstance = wc.hInstance;
+    ccWc.lpszClassName = kCcClass;
+    ccWc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
+    RegisterClassExW(&ccWc);
+    g_ccHwnd = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TOOLWINDOW, kCcClass,
+                               L"Control Center", WS_POPUP, 0, 0, 16, 16, nullptr, nullptr,
+                               wc.hInstance, nullptr);
+    StickyCreate(wc.hInstance);
+    g_ccWakeEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+    if (g_ccWakeEvent) {
+        g_ccWorkerThread = CreateThread(nullptr, 0, CcWorkerProc, nullptr, 0, nullptr);
+    }
+
     ApplyHideShowHotkey();
 
     if (g_settings.autoHideIdleSeconds == 0) {
@@ -11812,6 +16201,10 @@ DWORD WINAPI RenderThreadProc(void*) {
     if (g_manuallyHidden.load()) {
         ShowWindow(hwnd, SW_HIDE);
     }
+
+    g_idleTab = Wh_GetIntValue(L"SelectedTab", kTabPrimary);
+    g_timeCardView = Wh_GetIntValue(L"TimeCardView", kTimeViewClock);
+    FileTrayLoad();
 
     Renderer renderer;
     if (!renderer.Initialize(hwnd)) {
@@ -11955,7 +16348,14 @@ DWORD WINAPI RenderThreadProc(void*) {
                     const bool stillFullscreen =
                         g_settings.autoHideFullscreen && IsForegroundFullscreen(hwnd);
                     g_isFullscreen.store(stillFullscreen, std::memory_order_relaxed);
-                    if (!stillFullscreen) {
+                    if (g_barDropdownOpen.load(std::memory_order_relaxed)) {
+                        // Dropped down from the bar's clock or card shortcuts.
+                        g_autoHiddenParked = false;
+                    } else if (g_barModeActive.load(std::memory_order_relaxed)) {
+                        // The top bar owns the screen edge: stay parked whatever
+                        // woke us (an alert, a hover) until the bar goes away.
+                        g_autoHiddenParked = true;
+                    } else if (!stillFullscreen) {
                         g_fullscreenOverrideVisible = false;
                         g_autoHiddenParked = false;
                     } else if (g_fullscreenOverrideVisible.load()) {
@@ -12063,7 +16463,8 @@ DWORD WINAPI RenderThreadProc(void*) {
             secondary = ActivityForKind(kinds[1], g_settings, snapshot);
         }
 
-        const bool pinned = Wh_GetIntValue(L"PinnedExpanded", 0) != 0;
+        const bool pinned = Wh_GetIntValue(L"PinnedExpanded", 0) != 0 || g_ccNotchOpen.load() ||
+                            g_barDropdownOpen.load();
 
         if (primary.kind != previousPrimary) {
             if (primary.kind != IslandKind::Idle) {
@@ -12079,6 +16480,16 @@ DWORD WINAPI RenderThreadProc(void*) {
         GetWindowRect(hwnd, &windowRect);
         POINT cursor = {};
         GetCursorPos(&cursor);
+
+        // Dropped down from the bar: a click anywhere but the island, the bar
+        // or a panel opened from them folds it away again.
+        if (g_barDropdownOpen.load() && now - g_barDropdownOpenedAt > 0.25) {
+            const bool pressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000);
+            if (pressed && !PtInRect(&windowRect, cursor) && !CcCursorInWindow(g_topBarHwnd, cursor) &&
+                !CcCursorInWindow(g_ccHwnd, cursor) && !CcCursorInWindow(g_noteEditorHwnd, cursor)) {
+                TopBarCloseDropdown();
+            }
+        }
 
         bool hover = false;
         if (widthSpring.value > 1.0f && heightSpring.value > 1.0f) {
@@ -12218,6 +16629,13 @@ DWORD WINAPI RenderThreadProc(void*) {
             nextSystemPoll = now + 1.0;
         }
 
+        // Collapsed with another card selected: show that card's strip rather
+        // than the song. Hovering brings back the full dashboard on that card.
+        if (primary.kind == IslandKind::Media && !pinned && !isHoverExpanded && !recentTrackChange &&
+            SelectedCardIsNotMedia()) {
+            primary = ActivityForKind(IslandKind::Idle, g_settings, snapshot);
+        }
+
         if (primary.kind == IslandKind::Idle) {
             if (!isFullscreen && (pinned || isHoverExpanded)) {
                 primary.width = MediaLayout::kExpandedWidth * g_settings.sizeScale;
@@ -12259,7 +16677,12 @@ DWORD WINAPI RenderThreadProc(void*) {
 
         const bool fullscreenSuppressed =
             isFullscreen && !g_fullscreenOverrideVisible.load(std::memory_order_relaxed);
-        if ((isHidden || fullscreenSuppressed) && !privacyActive && !pinned && !isHoverExpanded && !isTransientAlert) {
+        // While a window is maximized the top bar replaces the pill entirely,
+        // unless the bar has dropped it down.
+        const bool barSuppressed = g_barModeActive.load(std::memory_order_relaxed) &&
+                                   !g_barDropdownOpen.load(std::memory_order_relaxed);
+        if (barSuppressed ||
+            ((isHidden || fullscreenSuppressed) && !privacyActive && !pinned && !isHoverExpanded && !isTransientAlert)) {
             primary.width = 0.0f;
             primary.height = 0.0f;
             secondary.reset();
@@ -12278,10 +16701,33 @@ DWORD WINAPI RenderThreadProc(void*) {
             targetHeight = std::max(primary.height, secondary->height);
         }
 
+        // Dropped down from the bar, the island grows out of the bar downwards
+        // when it opens and folds back up into it when it closes, instead of
+        // popping in and out.
+        static bool s_dropdownShown = false;
+        const bool dropdownOpen = g_barDropdownOpen.load(std::memory_order_relaxed);
+        const bool dropdownOpening = dropdownOpen && !s_dropdownShown;
+        if (s_dropdownShown && !dropdownOpen && g_barModeActive.load(std::memory_order_relaxed)) {
+            g_barDropdownFolding = true;
+        }
+        s_dropdownShown = dropdownOpen;
+        if (dropdownOpen || !g_barModeActive.load(std::memory_order_relaxed)) {
+            g_barDropdownFolding = false;
+        }
+
         widthSpring.target = targetWidth;
         heightSpring.target = targetHeight;
+        if (barSuppressed && !g_barDropdownFolding.load()) {
+            widthSpring.Reset(0.0f);
+            heightSpring.Reset(0.0f);
+        }
 
-        if (justUnhidden || (unhideGraceActive && widthSpring.value < 0.5f && targetWidth > 1.0f)) {
+        if (dropdownOpening) {
+            // Start as a sliver about the width of the bar's clock, flush under it.
+            widthSpring.Reset(std::min(targetWidth, 120.0f * g_settings.sizeScale));
+            heightSpring.Reset(2.0f);
+            nudgeSpring.Reset(0.0f);
+        } else if (justUnhidden || (unhideGraceActive && widthSpring.value < 0.5f && targetWidth > 1.0f)) {
             widthSpring.Reset(targetWidth);
             heightSpring.Reset(targetHeight);
             nudgeSpring.Reset(0.0f);
@@ -12581,14 +17027,20 @@ DWORD WINAPI RenderThreadProc(void*) {
         // --- Zero-CPU parking for auto-hidden states (idle timeout / fullscreen) ---
         // Only parks once the collapse animation has actually settled at 0,
         // so the shrink still animates before we cut over to OS-hidden.
-        const bool wantsAutoHiddenPark =
-            !g_manuallyHidden.load() && !pinned && !isHoverExpanded && !isTransientAlert &&
-            !privacyActive && (isHidden || fullscreenSuppressed) &&
+        const bool springsSettledAtZero =
             widthSpring.value < 0.5f && heightSpring.value < 0.5f &&
             std::fabs(widthSpring.velocity) < 0.5f && std::fabs(heightSpring.velocity) < 0.5f;
+        const bool wantsAutoHiddenPark =
+            !g_manuallyHidden.load() && springsSettledAtZero &&
+            (barSuppressed ||
+             (!pinned && !isHoverExpanded && !isTransientAlert && !privacyActive &&
+              (isHidden || fullscreenSuppressed)));
 
         if (wantsAutoHiddenPark) {
-            parkedForFullscreen = fullscreenSuppressed;
+            // The bar case reuses the fullscreen park: it re-checks on a timeout,
+            // which is what notices the bar going away.
+            parkedForFullscreen = fullscreenSuppressed || barSuppressed;
+            g_barDropdownFolding = false;
             wasAutoHiddenParked = true;
             g_autoHiddenParked = true;
             ShowWindow(hwnd, SW_HIDE);
@@ -12676,6 +17128,65 @@ DWORD WINAPI RenderThreadProc(void*) {
 
     // Balances whichever state the loop exited in; a no-op if already released.
     setHighResTimer(false);
+
+    // Give the reserved strip back to the desktop before anything else, or
+    // maximized windows would keep a gap at the top until Explorer restarts.
+    if (g_topBarHwnd) {
+        KillTimer(g_topBarHwnd, kTopBarTimerId);
+        TopBarExit();
+        TopBarFreeAppIcons();
+        DestroyWindow(g_topBarHwnd);
+        g_topBarHwnd = nullptr;
+    }
+    if (g_topBarFont) {
+        DeleteObject(g_topBarFont);
+        g_topBarFont = nullptr;
+    }
+    if (g_topBarIconFont) {
+        DeleteObject(g_topBarIconFont);
+        g_topBarIconFont = nullptr;
+    }
+    UnregisterClassW(kTopBarClass, wc.hInstance);
+
+    CcHide();
+    NoteEditorDestroy();
+    StickyDestroy(wc.hInstance);
+    if (g_ccHwnd) {
+        DestroyWindow(g_ccHwnd);
+        g_ccHwnd = nullptr;
+    }
+    UnregisterClassW(kCcClass, wc.hInstance);
+    g_ccRt.Reset();
+    g_ccBrush.Reset();
+    g_ccTitleFmt.Reset();
+    g_ccSubFmt.Reset();
+    g_ccIconFmt.Reset();
+    g_ccSmallIconFmt.Reset();
+    g_ccCenterFmt.Reset();
+    g_ccDw.Reset();
+    g_ccD2d.Reset();
+    g_ccEndpoint.Reset();
+    if (g_ccMemDc) {
+        if (g_ccOldBitmap) SelectObject(g_ccMemDc, g_ccOldBitmap);
+        DeleteDC(g_ccMemDc);
+        g_ccMemDc = nullptr;
+        g_ccOldBitmap = nullptr;
+    }
+    if (g_ccDib) {
+        DeleteObject(g_ccDib);
+        g_ccDib = nullptr;
+        g_ccDibW = g_ccDibH = 0;
+    }
+    // The worker also watches g_stopEvent, which is already set by now.
+    if (g_ccWorkerThread) {
+        WaitForSingleObject(g_ccWorkerThread, 5000);
+        CloseHandle(g_ccWorkerThread);
+        g_ccWorkerThread = nullptr;
+    }
+    if (g_ccWakeEvent) {
+        CloseHandle(g_ccWakeEvent);
+        g_ccWakeEvent = nullptr;
+    }
 
     renderer.Shutdown();
     DestroyWindow(hwnd);
@@ -12787,6 +17298,7 @@ void WhTool_ModUninit() {
         PostMessageW(g_hwnd, WM_CLOSE, 0, 0);
     }
     StopThreads();
+    RestoreFocusFollowsMouse();
     Wh_Log(L"Dynamic Island for Windows unloaded.");
 }
 

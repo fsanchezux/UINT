@@ -1,0 +1,70 @@
+theme: ''
+styleConstants:
+  - ''
+controlStyles:
+  - target: Grid#IconPanel@CommonStates > Border#BackgroundElement, Taskbar.TaskListLabeledButtonPanel@CommonStates > Border#BackgroundElement
+    styles:
+      - CornerRadius=10
+      - Margin=0,2,0,2
+      - Background=Transparent
+      - BorderThickness=0
+  - target: Taskbar.TaskListButtonPanel, Grid#IconPanel, Taskbar.TaskListLabeledButtonPanel, SearchUx.SearchUI.SearchButtonControl > Grid > SearchUx.SearchUI.SearchIconButton > SearchUx.SearchUI.SearchButtonRootGrid#SearchBoxButtonRootPanel
+    styles:
+      - Width=54
+      - Height=56
+  - target: Border#MultiWindowElement
+    styles:
+      - Visibility=Collapsed
+  - target: Taskbar.ExperienceToggleButton#LaunchListButton[AutomationProperties.AutomationId=StartButton]
+    styles:
+      - Visibility=Collapsed
+  - target: Grid#IconPanel > Rectangle#RunningIndicator, Taskbar.TaskListLabeledButtonPanel > Rectangle#RunningIndicator
+    styles:
+      - Visibility=Collapsed
+  - target: Taskbar.TaskbarFrame > Grid#RootGrid@DockingStates
+    styles:
+      - Tag=horizontal
+      - Tag@DockedLeft=vertical
+      - Tag@DockedRight=vertical
+      - Tag=>taskbarDock
+  - target: Taskbar.TaskbarFrame
+    styles:
+      - Width={{taskbarDock==`vertical`?skip():`Auto`}}
+      - MaxWidth={{containerGridWidth>0?containerGridWidth:`Infinity`}}
+      - Grid.Column=1
+      - Height={{taskbarDock==`vertical`?skip():60}}
+      - MaxHeight=60
+      - HorizontalAlignment=Center
+  - target: Taskbar.TaskbarFrame > Grid#RootGrid
+    styles:
+      - Margin=0,2,0,2
+      - Padding=20,0,20,0
+      - BorderThickness=0
+  - target: Grid#RootGrid > Taskbar.TaskbarBackground
+    styles:
+      - Margin=-20,0,-20,0
+  - target: Grid#RootGrid > Taskbar.TaskbarBackground > Grid
+    styles:
+      - Background:=<WindhawkBlur BlurAmount="8" TintColor="#80101010"/>
+      - CornerRadius=15
+      - BorderThickness=0
+      - BorderBrush=Transparent
+      - Width=Auto
+      - Padding=0
+  - target: Taskbar.TaskbarFrame > Grid#RootGrid > Taskbar.TaskbarBackground > Grid > Rectangle#BackgroundFill
+    styles:
+      - Fill=Transparent
+  - target: Rectangle#BackgroundStroke
+    styles:
+      - Visibility=Collapsed
+  - target: ':root > ScrollViewer > ScrollContentPresenter > Border > Grid'
+    styles:
+      - ColumnDefinitions:=<ColumnDefinitionCollection><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></ColumnDefinitionCollection>
+      - ActualWidth=>containerGridWidth
+  - target: SystemTray.SystemTrayFrame
+    styles:
+      - Visibility=Collapsed
+themeResourceVariables:
+  - ''
+clickThroughTaskbar: 1
+xamlDiagnosticsHandling: alert
