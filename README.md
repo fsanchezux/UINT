@@ -34,6 +34,16 @@ Himanshu (devcode90). Todo lo del original sigue funcionando. Este fork añade l
 
 Si tienes instalado el mod original (*Dynamic Island for Windows*), desactívalo para que no salgan dos islas.
 
+### Fuente
+
+UIN'T usa [Inter](https://rsms.me/inter/) y la instala solo: si no la tienes, la primera vez que arranca la descarga
+de [`fonts/InterVariable.ttf`](fonts/InterVariable.ttf) y la instala solo para tu usuario, sin permisos de
+administrador. Mientras tanto, o sin internet, se usa Segoe UI. Si pones otra fuente en el ajuste *Font family*, no
+se descarga nada.
+
+Inter es de The Inter Project Authors y se distribuye con la SIL Open Font License
+([`fonts/LICENSE-Inter.txt`](fonts/LICENSE-Inter.txt)).
+
 ### Para que las notificaciones funcionen
 
 Activa **Configuración → Privacidad y seguridad → Notificaciones → "Permitir que las aplicaciones accedan a las
