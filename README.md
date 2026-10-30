@@ -1,74 +1,78 @@
+<img width="2196" height="806" alt="image" src="https://github.com/user-attachments/assets/957f9f1e-d671-4a68-83cd-060989ae9c06" />
+
 # UIN'T
 
-Mod de [Windhawk](https://windhawk.net) para Windows 11: una isla tipo Dynamic Island que reacciona a la música,
-las descargas, el portapapeles, la batería y más. Cuando maximizas una ventana, se convierte en una barra superior.
+Nowadays we're pushed to vibe-code, which means paying for a subscription, and you don't always use up your token limit. That's where this project was born.
+I'm developing a mod for Windows that adapts the UI/UX with a designer's approach, keeping things simple and adding a few quality-of-life features from Linux and macOS.
 
-Es un fork de [Dynamic Island for Windows](https://github.com/devcode90/Dynamic-Island-for-Windows) de
-Himanshu (devcode90). Todo lo del original sigue funcionando. Este fork añade lo siguiente.
+A [Windhawk](https://windhawk.net) mod for Windows 11: a Dynamic Island-style pill that reacts to music,
+downloads, the clipboard, battery and more. When you maximize a window, it turns into a top bar.
 
-## Qué añade este fork
+It's a fork of [Dynamic Island for Windows](https://github.com/devcode90/Dynamic-Island-for-Windows) by
+Himanshu (devcode90). Everything from the original still works. This fork adds the following.
 
-- **Barra superior con ventanas maximizadas.** La pastilla se oculta y aparece una barra de lado a lado
-  (registrada como AppBar, así que las ventanas quedan debajo) con:
-  - las 4 apps usadas más recientemente, y un botón para volver a la anterior;
-  - la hora, que al hacer clic despliega la isla bajo la barra;
-  - avisos rápidos (copiado, Bloq Mayús, volumen, batería baja, notificaciones…);
-  - atajos a Calendario, Tiempo, Notas y Pomodoro, más red, Bluetooth, volumen, batería y Centro de control.
-- **Centro de control estilo macOS.** Wi-Fi, Bluetooth, brillo (DDC/CI), volumen y multimedia en un panel, con
-  listas de redes y de dispositivos Bluetooth.
-- **Tarjetas nuevas:**
-  - **Notas**, con una nota fijada que se queda visible.
-  - **Archivos** soltados en la isla, en la misma lista que las notas.
+## What this fork adds
+
+- **Top bar with maximized windows.** The pill hides and a full-width bar appears
+  (registered as an AppBar, so windows sit below it) with:
+  - the 4 most recently used apps, and a button to go back to the previous one;
+  - the time, which expands the island below the bar when clicked;
+  - quick alerts (copied, Caps Lock, volume, low battery, notifications…);
+  - shortcuts to Calendar, Weather, Notes and Pomodoro, plus network, Bluetooth, volume, battery and Control Center.
+- **macOS-style Control Center.** Wi-Fi, Bluetooth, brightness (DDC/CI), volume and media in a single panel, with
+  lists of networks and Bluetooth devices.
+- **New cards:**
+  - **Notes**, with a pinned note that stays visible.
+  - **Files** dropped onto the island, in the same list as the notes.
   - **Pomodoro**.
-  - **Widgets**, para activar o desactivar tarjetas.
-  - La tarjeta de **hora** rota entre reloj, calendario y tiempo.
-- **Foco al pasar el ratón** (opcional) y **paleta de colores propia**.
-- Interfaz en castellano.
+  - **Widgets**, to turn cards on or off.
+  - The **time** card cycles between clock, calendar and weather.
+- **Focus on hover** (optional) and a **custom color palette**.
+- Spanish interface.
 
-## Instalación
+## Installation
 
-1. Instala [Windhawk](https://windhawk.net).
-2. En Windhawk: **Explorar → Crear un nuevo mod**.
-3. Borra la plantilla, pega el contenido de [`uint.wh.cpp`](uint.wh.cpp) y pulsa **Compilar mod**.
-4. Opcional: en la pestaña **Ajustes** del mod, abre la vista de texto y pega [`settings/uint.yaml`](settings/uint.yaml).
+1. Install [Windhawk](https://windhawk.net).
+2. In Windhawk: **Explore → Create a new mod**.
+3. Delete the template, paste the contents of [`uint.wh.cpp`](uint.wh.cpp) and click **Compile mod**.
+4. Optional: in the mod's **Settings** tab, open the text view and paste [`settings/uint.yaml`](settings/uint.yaml).
 
-Si tienes instalado el mod original (*Dynamic Island for Windows*), desactívalo para que no salgan dos islas.
+If you have the original mod (*Dynamic Island for Windows*) installed, disable it so you don't end up with two islands.
 
-### Fuente
+### Font
 
-UIN'T usa [Inter](https://rsms.me/inter/) y la instala solo: si no la tienes, la primera vez que arranca la descarga
-de [`fonts/InterVariable.ttf`](fonts/InterVariable.ttf) y la instala solo para tu usuario, sin permisos de
-administrador. Mientras tanto, o sin internet, se usa Segoe UI. Si pones otra fuente en el ajuste *Font family*, no
-se descarga nada.
+UIN'T uses [Inter](https://rsms.me/inter/) and installs it automatically: if you don't have it, the first time it starts it downloads
+[`fonts/InterVariable.ttf`](fonts/InterVariable.ttf) and installs it for your user only, without administrator
+permissions. In the meantime, or when offline, Segoe UI is used. If you set a different font in the *Font family* setting,
+nothing is downloaded.
 
-Inter es de The Inter Project Authors y se distribuye con la SIL Open Font License
+Inter is by The Inter Project Authors and is distributed under the SIL Open Font License
 ([`fonts/LICENSE-Inter.txt`](fonts/LICENSE-Inter.txt)).
 
-### Para que las notificaciones funcionen
+### Making notifications work
 
-Activa **Configuración → Privacidad y seguridad → Notificaciones → "Permitir que las aplicaciones accedan a las
-notificaciones"**.
+Turn on **Settings → Privacy & security → Notifications → "Allow apps to access your notifications"**.
 
-### Ajustes de la barra de tareas (opcional)
+### Taskbar settings (optional)
 
-En [`settings/`](settings) también están los ajustes que uso para tener la barra de tareas como un dock centrado.
-Son para estos dos mods, que se instalan desde el catálogo de Windhawk:
+[`settings/`](settings) also contains the settings I use to get the taskbar looking like a centered dock.
+They are for these two mods, which you can install from the Windhawk catalog:
 
 - `windows-11-taskbar-styler.yaml` → *Windows 11 Taskbar Styler*
 - `taskbar-height-and-icon-size.yaml` → *Taskbar height and icon size*
 
-## Desarrollo
+## Development
 
-Todo el mod está en un único archivo, [`uint.wh.cpp`](uint.wh.cpp), en C++ con Direct2D y C++/WinRT. Para probar
-un cambio, pégalo en el editor de Windhawk y compílalo. Para comprobar solo la sintaxis, puedes usar el clang que
-trae Windhawk (el comando está en [`CLAUDE.md`](CLAUDE.md)).
+The whole mod lives in a single file, [`uint.wh.cpp`](uint.wh.cpp), written in C++ with Direct2D and C++/WinRT. To test
+a change, paste it into the Windhawk editor and compile it. To check only the syntax, you can use the clang that
+ships with Windhawk (the command is in [`CLAUDE.md`](CLAUDE.md)).
 
-Los issues y los pull requests son bienvenidos.
+Issues and pull requests are welcome.
 
-## Créditos y licencia
+## Credits and license
 
-- Mod original: [Dynamic Island for Windows](https://github.com/devcode90/Dynamic-Island-for-Windows), de
-  Himanshu (devcode90) y sus colaboradores (ver los créditos dentro del mod).
+- Original mod: [Dynamic Island for Windows](https://github.com/devcode90/Dynamic-Island-for-Windows), by
+  Himanshu (devcode90) and contributors (see the credits inside the mod).
 - Fork: [fsanchezux](https://github.com/fsanchezux).
 
-Licencia [MIT](LICENSE).
+Licensed under [MIT](LICENSE).
