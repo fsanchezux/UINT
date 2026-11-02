@@ -1,5 +1,13 @@
 # Changelog
 
+## Sin publicar
+
+- Barra de tareas oculta: si Windows la deja a la vista al sacar el cursor (se quedaba con el foco y lo que
+  escribías iba a ella), el mod devuelve el foco a la app y la vuelve a esconder.
+- Cuando una app parpadea en la barra de tareas para pedir atención, el aviso sale en la isla o en la barra
+  superior junto a la hora, y la barra de tareas ya no aparece por eso.
+- Con una app a pantalla completa, las notificaciones salen en la isla aunque haya una ventana maximizada detrás.
+
 ## 1.1.0
 
 - Nueva paleta UIN'T por defecto: fondo #170312 en la isla, la barra y los paneles; acento #F62B0A en la isla

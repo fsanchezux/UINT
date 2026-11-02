@@ -7277,6 +7277,176 @@ std::wstring TopBarCurrentSignature() {
     return signature;
 }
 
+// --- Taskbar set to hide itself ---
+// Windows keeps a hidden taskbar up in a few cases: a button flashing for
+// attention, or the taskbar keeping the focus once the cursor leaves it (with
+// focus following the mouse, hovering it hands it the focus, and whatever is
+// typed next goes to it while it covers the bottom of the window). The guard
+// below puts it away once the cursor has been off it for a moment.
+namespace TaskbarGuard {
+    constexpr double kGraceSeconds = 1.0;  // Windows' own hide fits in this
+    constexpr double kRetrySeconds = 1.2;
+}
+
+bool TaskbarAutoHideOn() {
+    static bool cached = false;
+    static double checkedAt = -10.0;
+    const double now = NowSeconds();
+    if (now - checkedAt > 5.0) {
+        APPBARDATA abd = {sizeof(abd)};
+        cached = (SHAppBarMessage(ABM_GETSTATE, &abd) & ABS_AUTOHIDE) != 0;
+        checkedAt = now;
+    }
+    return cached;
+}
+
+bool IsTaskbarWindow(HWND hwnd) {
+    wchar_t cls[32] = {};
+    GetClassNameW(hwnd, cls, ARRAYSIZE(cls));
+    return wcscmp(cls, L"Shell_TrayWnd") == 0 || wcscmp(cls, L"Shell_SecondaryTrayWnd") == 0;
+}
+
+// The taskbar's own popups: Start, search, a jump list, a thumbnail, a menu.
+bool IsTaskbarPopup(HWND hwnd) {
+    if (!hwnd || IsTaskbarWindow(hwnd)) return false;
+    wchar_t cls[64] = {};
+    GetClassNameW(hwnd, cls, ARRAYSIZE(cls));
+    return wcscmp(cls, L"TaskListThumbnailWnd") == 0 || wcscmp(cls, L"XamlExplorerHostIslandWindow") == 0 ||
+           IsShellOwnedWindow(hwnd);
+}
+
+// Ends a taskbar button's flash, which is what holds a hidden taskbar up.
+void StopTaskbarFlash(HWND hwnd) {
+    FLASHWINFO fi = {sizeof(fi), hwnd, FLASHW_STOP, 0, 0};
+    FlashWindowEx(&fi);
+}
+
+BOOL CALLBACK StopTaskbarFlashProc(HWND hwnd, LPARAM) {
+    if (TopBarIsAppWindow(hwnd) && hwnd != GetForegroundWindow()) {
+        StopTaskbarFlash(hwnd);
+    }
+    return TRUE;
+}
+
+// SetForegroundWindow is only honoured for the process that sent the last
+// input, so a mouse move of zero goes first.
+void TaskbarGuardFocus(HWND hwnd) {
+    INPUT input = {};
+    input.type = INPUT_MOUSE;
+    input.mi.dwFlags = MOUSEEVENTF_MOVE;
+    SendInput(1, &input, sizeof(input));
+    SetForegroundWindow(hwnd);
+}
+
+BOOL CALLBACK TaskbarGuardTopAppProc(HWND hwnd, LPARAM lParam) {
+    if (TopBarIsAppWindow(hwnd) && !IsIconic(hwnd)) {
+        *reinterpret_cast<HWND*>(lParam) = hwnd;
+        return FALSE;
+    }
+    return TRUE;
+}
+
+// Where the focus goes back to: the app under the cursor, else the topmost app
+// window, the one in use before the taskbar took the focus.
+HWND TaskbarGuardFocusTarget(POINT cursor) {
+    HWND under = WindowFromPoint(cursor);
+    if (under) under = GetAncestor(under, GA_ROOT);
+    if (under && TopBarIsAppWindow(under) && !IsIconic(under)) return under;
+    HWND top = nullptr;
+    EnumWindows(TaskbarGuardTopAppProc, reinterpret_cast<LPARAM>(&top));
+    return top;
+}
+
+void TaskbarAutoHideGuard() {
+    static bool s_wasOver = false;   // the cursor was on the taskbar while it was up
+    static double s_offSince = 0.0;  // since when it is up with the cursor away
+    static int s_stage = 0;          // what has been tried so far this time
+    static double s_triedAt = 0.0;
+    auto reset = [] {
+        s_offSince = 0.0;
+        s_stage = 0;
+    };
+
+    HWND tray = FindWindowW(L"Shell_TrayWnd", nullptr);
+    POINT cursor = {};
+    if (!tray || !TaskbarAutoHideOn() || !GetCursorPos(&cursor)) {
+        s_wasOver = false;
+        reset();
+        return;
+    }
+
+    std::vector<HWND> bars = {tray};
+    for (HWND bar = FindWindowExW(nullptr, nullptr, L"Shell_SecondaryTrayWnd", nullptr); bar;
+         bar = FindWindowExW(nullptr, bar, L"Shell_SecondaryTrayWnd", nullptr)) {
+        bars.push_back(bar);
+    }
+    bool shown = false;
+    bool over = false;
+    for (HWND bar : bars) {
+        RECT rc = {};
+        if (!IsWindowVisible(bar) || !GetWindowRect(bar, &rc)) continue;
+        if (PtInRect(&rc, cursor)) over = true;
+        MONITORINFO mi = {sizeof(mi)};
+        RECT onScreen = {};
+        // Hidden, a taskbar leaves a sliver of a couple of pixels on screen.
+        if (GetMonitorInfoW(MonitorFromRect(&rc, MONITOR_DEFAULTTONEAREST), &mi) &&
+            IntersectRect(&onScreen, &rc, &mi.rcMonitor) &&
+            std::min(onScreen.right - onScreen.left, onScreen.bottom - onScreen.top) > 8) {
+            shown = true;
+        }
+    }
+    if (!over) {
+        HWND under = WindowFromPoint(cursor);
+        over = under && IsTaskbarPopup(GetAncestor(under, GA_ROOT));
+    }
+
+    const bool buttonDown = ((GetAsyncKeyState(VK_LBUTTON) | GetAsyncKeyState(VK_RBUTTON)) & 0x8000) != 0;
+    if (over || buttonDown) {
+        s_wasOver = s_wasOver || over;
+        reset();
+        return;
+    }
+    if (!shown) {
+        s_wasOver = false;
+        reset();
+        return;
+    }
+    HWND fg = GetForegroundWindow();
+    if (IsTaskbarPopup(fg)) {
+        reset();  // Start, search, a jump list or a menu is open
+        return;
+    }
+
+    const double now = NowSeconds();
+    if (s_offSince == 0.0) {
+        s_offSince = now;
+        return;
+    }
+    if (now - s_offSince < TaskbarGuard::kGraceSeconds ||
+        (s_stage > 0 && now - s_triedAt < TaskbarGuard::kRetrySeconds)) {
+        return;
+    }
+
+    if (fg && IsTaskbarWindow(fg)) {
+        // Reached with Win+T and the cursor never on it: a keyboard user, leave it.
+        if (!s_wasOver || s_stage >= 2) return;
+        if (HWND target = TaskbarGuardFocusTarget(cursor)) {
+            TaskbarGuardFocus(target);
+        }
+    } else if (s_stage == 0) {
+        EnumWindows(StopTaskbarFlashProc, 0);
+    } else if (s_stage == 1 && fg) {
+        // Still up with nothing holding it: a focus round trip through the
+        // taskbar makes it notice the cursor is gone, as clicking it and back does.
+        TaskbarGuardFocus(tray);
+        TaskbarGuardFocus(fg);
+    } else {
+        return;
+    }
+    ++s_stage;
+    s_triedAt = now;
+}
+
 void TopBarTick() {
     if (!g_topBarHwnd) {
         return;
@@ -7285,6 +7455,7 @@ void TopBarTick() {
     PomoTick();
     StickyUpdate(false);
     TopBarTrackForeground();
+    TaskbarAutoHideGuard();
 
     const bool enabled = g_settings.maximizedTopBar && !g_manuallyHidden.load();
     const HMONITOR monitor = g_topBarRegistered ? g_topBarMonitor : GetAnchorMonitor();
@@ -7311,8 +7482,10 @@ void TopBarTick() {
     }
 
     // The render loop may have re-shown the pill (a settings change does that);
-    // the bar owns the edge, so keep it hidden unless it is dropped down.
-    if (g_hwnd && IsWindowVisible(g_hwnd) && !g_barDropdownOpen.load() && !g_barDropdownFolding.load()) {
+    // the bar owns the edge, so keep it hidden unless it is dropped down. Not
+    // while a full-screen app has hidden the bar: the pill shows alerts then.
+    if (g_hwnd && IsWindowVisible(g_hwnd) && !g_barDropdownOpen.load() && !g_barDropdownFolding.load() &&
+        !g_topBarHiddenForFullscreen) {
         ShowWindow(g_hwnd, SW_HIDE);
     }
     EnumWindows(TopBarForeignIslandProc, 0);
@@ -10401,6 +10574,60 @@ void CaptureShellNotification(HWND hwnd) {
             CoUninitialize();
         }
     }).detach();
+}
+
+// An app flashing its taskbar button for attention (a chat message, a finished
+// download). The notice goes to the island, or to the top bar next to the clock,
+// and with the taskbar set to hide itself the flash is stopped, since Windows
+// would otherwise bring the taskbar up and keep it there.
+void CaptureTaskbarFlash(HWND hwnd) {
+    const double now = NowSeconds();
+    if (now < 3.0 || !IsWindow(hwnd) || hwnd == GetForegroundWindow()) {
+        return;
+    }
+    if (TaskbarAutoHideOn()) {
+        StopTaskbarFlash(hwnd);
+    }
+
+    // Apps flash again and again until looked at; one notice per window is enough.
+    static std::unordered_map<HWND, double> s_noticedAt;
+    if (s_noticedAt.size() > 64) s_noticedAt.clear();
+    auto noticed = s_noticedAt.find(hwnd);
+    if (noticed != s_noticedAt.end() && now - noticed->second < 30.0) {
+        return;
+    }
+    s_noticedAt[hwnd] = now;
+    if (g_settings.notificationRespectDnD && g_isDnDActive.load()) {
+        return;
+    }
+
+    std::wstring image;
+    ProcessImageNameForWindow(hwnd, &image);
+    std::wstring app = StripExtension(BaseNameFromPath(image));
+    if (!app.empty()) app[0] = static_cast<wchar_t>(towupper(app[0]));
+    wchar_t title[192] = {};
+    GetWindowTextW(hwnd, title, ARRAYSIZE(title));
+
+    NotificationSnapshot notification;
+    notification.active = true;
+    notification.app = app.empty() ? std::wstring(title) : app;
+    notification.title = (title[0] && _wcsicmp(title, app.c_str()) != 0) ? std::wstring(title) : L"Quiere tu atención";
+    notification.expiresAt = now + 6.0;
+    notification.icon = GetWindowIconPixels(hwnd, 64);
+    if (notification.title.size() > 96) {
+        notification.title.resize(96);
+        notification.title += L"...";
+    }
+
+    {
+        std::lock_guard lock(g_stateMutex);
+        // A toast for the same message says more; leave it up.
+        if (g_state.notification.active && now < g_state.notification.expiresAt) {
+            return;
+        }
+        g_state.notification = std::move(notification);
+    }
+    TriggerNudge();
 }
 
 void CaptureClipboard(HWND hwnd) {
@@ -16703,6 +16930,8 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     if (msg == g_shellHookMessage && g_shellHookMessage != 0) {
         if (wParam == HSHELL_WINDOWCREATED) {
             CaptureShellNotification(reinterpret_cast<HWND>(lParam));
+        } else if (wParam == HSHELL_FLASH) {
+            CaptureTaskbarFlash(reinterpret_cast<HWND>(lParam));
         }
         return 0;
     }
@@ -16965,9 +17194,12 @@ DWORD WINAPI RenderThreadProc(void*) {
                     if (g_barDropdownOpen.load(std::memory_order_relaxed)) {
                         // Dropped down from the bar's clock or card shortcuts.
                         g_autoHiddenParked = false;
-                    } else if (g_barModeActive.load(std::memory_order_relaxed)) {
+                    } else if (g_barModeActive.load(std::memory_order_relaxed) &&
+                               !g_topBarHiddenForFullscreen) {
                         // The top bar owns the screen edge: stay parked whatever
                         // woke us (an alert, a hover) until the bar goes away.
+                        // A full-screen app hides the bar, and then an alert
+                        // wakes the pill as it does with no bar at all.
                         g_autoHiddenParked = true;
                     } else if (!stillFullscreen) {
                         g_fullscreenOverrideVisible = false;
@@ -17219,8 +17451,9 @@ DWORD WINAPI RenderThreadProc(void*) {
         // been raised over the island. Cheap and rate-limited, and skipped
         // while the island is hidden or suppressed so it cannot un-hide itself.
         static double lastTopmostCheck = 0.0;
-        if (!isFullscreen && !g_manuallyHidden.load() && !g_autoHiddenParked.load() &&
-            now - lastTopmostCheck > 1.0) {
+        // An alert over a full-screen app has to win the z-order too.
+        if ((!isFullscreen || isTransientAlert) && !g_manuallyHidden.load() &&
+            !g_autoHiddenParked.load() && now - lastTopmostCheck > 1.0) {
             EnsureTopmost(hwnd);
             lastTopmostCheck = now;
         }
@@ -17301,9 +17534,12 @@ DWORD WINAPI RenderThreadProc(void*) {
         const bool fullscreenSuppressed =
             isFullscreen && !g_fullscreenOverrideVisible.load(std::memory_order_relaxed);
         // While a window is maximized the top bar replaces the pill entirely,
-        // unless the bar has dropped it down.
+        // unless the bar has dropped it down. A full-screen app hides the bar,
+        // and then the pill is left to the full-screen rules, which still let
+        // a notification through.
         const bool barSuppressed = g_barModeActive.load(std::memory_order_relaxed) &&
-                                   !g_barDropdownOpen.load(std::memory_order_relaxed);
+                                   !g_barDropdownOpen.load(std::memory_order_relaxed) &&
+                                   !g_topBarHiddenForFullscreen;
         if (barSuppressed ||
             ((isHidden || fullscreenSuppressed) && !privacyActive && !pinned && !isHoverExpanded && !isTransientAlert)) {
             primary.width = 0.0f;

@@ -137,6 +137,18 @@ El archivo usa finales de línea CRLF.
   (`SHDoDragDrop` con el data object del shell). `addedAt` por archivo (guardado en `TrayFiles` como
   `ruta\x1Fsegundos`); `FileTrayPrune()` cada minuto quita los de >24 h o que ya no existen.
 
+### Barra de tareas oculta (Linear FUX-212)
+- Solo actúa si la barra de Windows está en ocultar automáticamente (`TaskbarAutoHideOn`, ABM_GETSTATE cada 5 s).
+- `TaskbarAutoHideGuard()` en cada tick de la barra superior: si la barra está a la vista y el cursor lleva >1 s fuera
+  (ni en la barra ni en sus popups, sin botón pulsado, sin Inicio/búsqueda/menú delante): si tiene el foco y el cursor
+  estuvo encima, devuelve el foco a la app bajo el cursor (o la de arriba del z-order; `SendInput` de un movimiento
+  nulo para poder usar `SetForegroundWindow`). Si no tiene el foco: 1º `FLASHW_STOP` a todas las apps, 2º ida y vuelta
+  del foco por la barra. Win+T por teclado (cursor nunca encima) no se toca.
+- `HSHELL_FLASH` en el shell hook → `CaptureTaskbarFlash`: notificación en la isla / chip de la barra (6 s, una por
+  ventana cada 30 s, no pisa un toast activo) y `FLASHW_STOP` si la barra se oculta sola.
+- Pantalla completa con la barra superior registrada (ventana maximizada detrás): `g_topBarHiddenForFullscreen` quita
+  `barSuppressed` y el aparcado de la barra, así que las alertas despiertan la pastilla como sin barra.
+
 ### Clics en la isla
 - Clic en el notch recogido → se despliega (como hover).
 - Desplegado: solo la portada/título abre la app que suena.
