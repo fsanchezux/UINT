@@ -2304,6 +2304,13 @@ void NotifyKeyboardThreadSettingChanged();  // forward declaration; defined with
 // hovering over it"). It is switched on for this session only -- never written
 // to the profile -- and the user's previous values are put back when the
 // option is turned off or the mod unloads.
+//
+// The values are system-wide, so a second copy of the mod can undo them: when
+// Windhawk recompiles the mod it starts the new process before the old one has
+// unloaded, and the old one's restore switched tracking back off for good. So
+// the originals are also kept with Wh_SetIntValue (the new copy picks up the
+// real ones instead of the old copy's), and EnsureFocusFollowsMouse() puts the
+// setting back every couple of seconds if anything else turned it off.
 struct FocusTrackingState {
     bool saved = false;
     BOOL tracking = FALSE;
@@ -2311,8 +2318,10 @@ struct FocusTrackingState {
     DWORD timeout = 0;
 };
 FocusTrackingState g_focusTrackingOriginal;
+std::recursive_mutex g_focusTrackingMutex;
 
 void RestoreFocusFollowsMouse() {
+    std::lock_guard lock(g_focusTrackingMutex);
     if (!g_focusTrackingOriginal.saved) return;
     SystemParametersInfoW(SPI_SETACTIVEWINDOWTRACKING, 0,
                           reinterpret_cast<PVOID>(static_cast<INT_PTR>(g_focusTrackingOriginal.tracking)),
@@ -2323,17 +2332,31 @@ void RestoreFocusFollowsMouse() {
                           reinterpret_cast<PVOID>(static_cast<UINT_PTR>(g_focusTrackingOriginal.timeout)),
                           SPIF_SENDCHANGE);
     g_focusTrackingOriginal.saved = false;
+    Wh_SetIntValue(L"FocusTrackingSaved", 0);
 }
 
 void ApplyFocusFollowsMouse() {
+    std::lock_guard lock(g_focusTrackingMutex);
     if (!g_settings.focusFollowsMouse) {
         RestoreFocusFollowsMouse();
         return;
     }
     if (!g_focusTrackingOriginal.saved) {
-        SystemParametersInfoW(SPI_GETACTIVEWINDOWTRACKING, 0, &g_focusTrackingOriginal.tracking, 0);
-        SystemParametersInfoW(SPI_GETACTIVEWNDTRKZORDER, 0, &g_focusTrackingOriginal.raise, 0);
-        SystemParametersInfoW(SPI_GETACTIVEWNDTRKTIMEOUT, 0, &g_focusTrackingOriginal.timeout, 0);
+        if (Wh_GetIntValue(L"FocusTrackingSaved", 0)) {
+            // Another copy of the mod (or one that crashed) already switched it
+            // on: what Windows reports now is ours, not the user's.
+            g_focusTrackingOriginal.tracking = Wh_GetIntValue(L"FocusTrackingTracking", 0) ? TRUE : FALSE;
+            g_focusTrackingOriginal.raise = Wh_GetIntValue(L"FocusTrackingRaise", 0) ? TRUE : FALSE;
+            g_focusTrackingOriginal.timeout = static_cast<DWORD>(Wh_GetIntValue(L"FocusTrackingTimeout", 0));
+        } else {
+            SystemParametersInfoW(SPI_GETACTIVEWINDOWTRACKING, 0, &g_focusTrackingOriginal.tracking, 0);
+            SystemParametersInfoW(SPI_GETACTIVEWNDTRKZORDER, 0, &g_focusTrackingOriginal.raise, 0);
+            SystemParametersInfoW(SPI_GETACTIVEWNDTRKTIMEOUT, 0, &g_focusTrackingOriginal.timeout, 0);
+            Wh_SetIntValue(L"FocusTrackingTracking", g_focusTrackingOriginal.tracking ? 1 : 0);
+            Wh_SetIntValue(L"FocusTrackingRaise", g_focusTrackingOriginal.raise ? 1 : 0);
+            Wh_SetIntValue(L"FocusTrackingTimeout", static_cast<int>(g_focusTrackingOriginal.timeout));
+            Wh_SetIntValue(L"FocusTrackingSaved", 1);
+        }
         g_focusTrackingOriginal.saved = true;
     }
     SystemParametersInfoW(SPI_SETACTIVEWINDOWTRACKING, 0, reinterpret_cast<PVOID>(static_cast<INT_PTR>(TRUE)),
@@ -2344,6 +2367,21 @@ void ApplyFocusFollowsMouse() {
     SystemParametersInfoW(SPI_SETACTIVEWNDTRKTIMEOUT, 0,
                           reinterpret_cast<PVOID>(static_cast<UINT_PTR>(g_settings.focusFollowsMouseDelay)),
                           SPIF_SENDCHANGE);
+}
+
+// Called from the top bar tick (300 ms); checks every ~2 s.
+void EnsureFocusFollowsMouse() {
+    static ULONGLONG s_lastCheck = 0;
+    const ULONGLONG now = GetTickCount64();
+    if (now - s_lastCheck < 2000) return;
+    s_lastCheck = now;
+    if (!g_settings.focusFollowsMouse) return;
+    BOOL tracking = FALSE;
+    SystemParametersInfoW(SPI_GETACTIVEWINDOWTRACKING, 0, &tracking, 0);
+    if (!tracking) {
+        Wh_Log(L"Focus follows mouse was switched off from outside; turning it back on.");
+        ApplyFocusFollowsMouse();
+    }
 }
 
 void LoadSettings() {
@@ -7456,6 +7494,7 @@ void TopBarTick() {
     StickyUpdate(false);
     TopBarTrackForeground();
     TaskbarAutoHideGuard();
+    EnsureFocusFollowsMouse();
 
     const bool enabled = g_settings.maximizedTopBar && !g_manuallyHidden.load();
     const HMONITOR monitor = g_topBarRegistered ? g_topBarMonitor : GetAnchorMonitor();
