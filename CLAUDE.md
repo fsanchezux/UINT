@@ -133,8 +133,8 @@ El archivo usa finales de línea CRLF.
   `kCcHeight` 462. La fila de modo avión dibuja su círculo como las otras (su hit es toda la fila).
 - **Pomodoro**: `kPomoYellow`, `DrawPomoRing()`. Pastilla recogida (idle) = anillo a la izquierda
   (`IdleStripLayout::kPomoRingReserve`); barra superior = anillo con Direct2D sobre el bitmap GDI
-  (`TopBarDrawPomoRing`), tiempo solo con `g_topBarPomoHover`. Tarjeta: progreso por el borde de la isla
-  (`CreateOutlinePath` + dash), hora de fin con campana, botones play/pausa y parar (`PomoButtonOffset`).
+  (`TopBarDrawPomoRing`), tiempo solo con `g_topBarPomoHover`. Tarjeta: progreso en una píldora alrededor
+  de la hora (FUX-214; `CreateOutlinePath` + dash), hora de fin con campana, botones play/pausa y parar (`PomoButtonOffset`).
 - **Archivos**: `IslandDropTarget` (OLE, `RegisterDragDrop`; `WM_DROPFILES` solo de reserva) abre Notas
   en `DragEnter`. Arrastrar una fila de archivo (`NotesFileAt`, umbral `SM_CXDRAG`) → `FileTrayDragOut`
   (`SHDoDragDrop` con el data object del shell). `addedAt` por archivo (guardado en `TrayFiles` como

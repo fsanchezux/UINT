@@ -13391,13 +13391,12 @@ class Renderer {
         return geom;
     }
 
-    // Pomodoro card, after an iOS timer Live Activity: the progress runs in
-    // yellow around the island's edge, the time it ends sits on top, the time
-    // left in the middle and two small buttons (play/pause, stop) below it.
+    // Pomodoro card, after an iOS timer Live Activity: the time it ends sits on
+    // top, the time left in the middle inside a pill whose border fills in
+    // yellow as it runs, and two small buttons (play/pause, stop) below it.
     void DrawPomodoroTab(D2D1_RECT_F rect) {
         PomoEnsureInit();
         const float w = rect.right - rect.left;
-        const float h = rect.bottom - rect.top;
         const bool focus = g_pomo.phase == PomoPhase::Focus;
         const bool started = PomoActive();
 
@@ -13405,16 +13404,43 @@ class Renderer {
         target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.10f), &fill);
         if (!fill) return;
 
-        // Progress along the edge: a faint track, then the elapsed share in yellow.
+        // The time left, framed by a pill (FUX-214): a faint track, then the
+        // elapsed share in yellow, clockwise from the top centre.
+        const std::wstring clockText = PomoClockText();
+        const D2D1_RECT_F timeRect = D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 36.0f,
+                                                 rect.right - NotchCard::kRightInset, rect.top + 106.0f);
         {
-            constexpr float kStroke = 3.0f;
-            const float inset = kStroke * 0.5f + 2.0f;
-            const D2D1_RECT_F edge = D2D1::RectF(rect.left + inset, rect.top + inset, rect.right - inset,
-                                                 rect.bottom - inset);
-            const float radius = std::max(0.0f, ContentIslandRadius(h) - inset);
-            const float topRadius = g_settings.notchStyle ? 0.0f : radius;
-            ComPtr<ID2D1PathGeometry> outline = CreateOutlinePath(edge, topRadius, radius);
+            IDWriteTextFormat* format = hugeTextFormat_ ? hugeTextFormat_.Get() : clockFormat_.Get();
+            // Sized for the widest of the text and "00:00" so the pill doesn't
+            // jump as the digits change.
+            auto measure = [&](const std::wstring& s, float& tw, float& th) {
+                ComPtr<IDWriteTextLayout> layout;
+                if (format && SUCCEEDED(dwriteFactory_->CreateTextLayout(s.c_str(), static_cast<UINT32>(s.size()),
+                                                                         format, 1000.0f, 200.0f, &layout))) {
+                    DWRITE_TEXT_METRICS m = {};
+                    if (SUCCEEDED(layout->GetMetrics(&m))) {
+                        tw = std::max(tw, m.widthIncludingTrailingWhitespace);
+                        th = std::max(th, m.height);
+                    }
+                }
+            };
+            float textW = 0.0f;
+            float textH = 0.0f;
+            measure(clockText, textW, textH);
+            measure(L"00:00", textW, textH);
+            if (textW <= 0.0f) textW = 110.0f;
+            if (textH <= 0.0f) textH = 50.0f;
+
+            constexpr float kStroke = 5.0f;
+            const float pillH = std::min(textH + 8.0f, timeRect.bottom - timeRect.top);
+            const float pillW = std::min(textW + pillH, timeRect.right - timeRect.left);
+            const float pcx = (timeRect.left + timeRect.right) * 0.5f;
+            const float pcy = (timeRect.top + timeRect.bottom) * 0.5f;
+            const D2D1_RECT_F pill = D2D1::RectF(pcx - pillW * 0.5f, pcy - pillH * 0.5f, pcx + pillW * 0.5f,
+                                                 pcy + pillH * 0.5f);
+            ComPtr<ID2D1PathGeometry> outline = CreateOutlinePath(pill, pillH * 0.5f, pillH * 0.5f);
             if (outline) {
+                fill->SetColor(D2D1::ColorF(1, 1, 1, 0.14f));
                 target_->DrawGeometry(outline.Get(), fill.Get(), kStroke);
                 const float progress = PomoProgress();
                 float length = 0.0f;
@@ -13424,13 +13450,14 @@ class Renderer {
                     const float dashes[2] = {progress * length / kStroke, length / kStroke + 1.0f};
                     ComPtr<ID2D1StrokeStyle> style;
                     d2dFactory_->CreateStrokeStyle(
-                        D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_FLAT, D2D1_CAP_STYLE_FLAT, D2D1_CAP_STYLE_FLAT,
+                        D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND,
                                                     D2D1_LINE_JOIN_ROUND, 10.0f, D2D1_DASH_STYLE_CUSTOM, 0.0f),
                         dashes, 2, &style);
                     fill->SetColor(kPomoYellow);
                     target_->DrawGeometry(outline.Get(), fill.Get(), kStroke, style.Get());
                 }
             }
+            fill->SetColor(D2D1::ColorF(1, 1, 1, 0.10f));
         }
 
         // Top line: the phase, and while it runs, a bell with the time it ends.
@@ -13481,8 +13508,7 @@ class Renderer {
         }
 
         // The time left.
-        DrawCardText(PomoClockText(), D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 36.0f,
-                                                  rect.right - NotchCard::kRightInset, rect.top + 106.0f),
+        DrawCardText(clockText, timeRect,
                      hugeTextFormat_ ? hugeTextFormat_.Get() : clockFormat_.Get(), textBrush_.Get(),
                      DWRITE_TEXT_ALIGNMENT_CENTER);
 

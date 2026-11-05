@@ -2,6 +2,7 @@
 
 ## Sin publicar
 
+- Pomodoro: el progreso va en una píldora alrededor del tiempo restante en vez de por el borde de la isla.
 - Barra de tareas oculta: si Windows la deja a la vista al sacar el cursor (se quedaba con el foco y lo que
   escribías iba a ella), el mod devuelve el foco a la app y la vuelve a esconder.
 - Cuando una app parpadea en la barra de tareas para pedir atención, el aviso sale en la isla o en la barra
