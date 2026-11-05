@@ -123,7 +123,10 @@ El archivo usa finales de línea CRLF.
 - **Paleta UIN'T** (`ThemePreset::Uint`, `kDefaultThemeIndex`, por defecto): fondo #170312. Acento de la isla
   #F62B0A (`AccentColorMode` custom por defecto). `SecondaryAccent()` (#FF9A44, `Themes.SecondaryAccentHex`)
   es el acento de barra superior, centro de control, editor de notas y nota fijada (antes el acento de Windows).
-- **Forma**: notch por defecto (también con `ShapeStyle` vacío), radio inferior `kNotchRadius` = 14.
+- **Forma**: notch por defecto (también con `ShapeStyle` vacío), radio inferior `kNotchRadius` = 18 y curvas
+  invertidas arriba (`kNotchEarRatio`, en `CreateNotchGeometry`, dentro del padding de render; FUX-213).
+  Alturas recogidas: reposo 32, media / Bloq Mayús / No molestar 38. Con un fondo (backdrop) la región de
+  ventana recorta las curvas invertidas.
 - **Fuente**: `FontFamily` vacío → `InstalledInterFamily()` (Inter / Inter Variable si están instaladas).
   Si falta, `FontThreadProc` → `InstallInterForUser()` la baja de `raw.githubusercontent.com/fsanchezux/UINT/main/
   fonts/InterVariable.ttf` (en el repo, con `fonts/LICENSE-Inter.txt`), la copia a
@@ -133,8 +136,8 @@ El archivo usa finales de línea CRLF.
   `kCcHeight` 462. La fila de modo avión dibuja su círculo como las otras (su hit es toda la fila).
 - **Pomodoro**: `kPomoYellow`, `DrawPomoRing()`. Pastilla recogida (idle) = anillo a la izquierda
   (`IdleStripLayout::kPomoRingReserve`); barra superior = anillo con Direct2D sobre el bitmap GDI
-  (`TopBarDrawPomoRing`), tiempo solo con `g_topBarPomoHover`. Tarjeta: progreso por el borde de la isla
-  (`CreateOutlinePath` + dash), hora de fin con campana, botones play/pausa y parar (`PomoButtonOffset`).
+  (`TopBarDrawPomoRing`), tiempo solo con `g_topBarPomoHover`. Tarjeta: progreso en una píldora alrededor
+  de la hora (FUX-214; `CreateOutlinePath` + dash), hora de fin con campana, botones play/pausa y parar (`PomoButtonOffset`).
 - **Archivos**: `IslandDropTarget` (OLE, `RegisterDragDrop`; `WM_DROPFILES` solo de reserva) abre Notas
   en `DragEnter`. Arrastrar una fila de archivo (`NotesFileAt`, umbral `SM_CXDRAG`) → `FileTrayDragOut`
   (`SHDoDragDrop` con el data object del shell). `addedAt` por archivo (guardado en `TrayFiles` como
@@ -149,6 +152,8 @@ El archivo usa finales de línea CRLF.
   del foco por la barra. Win+T por teclado (cursor nunca encima) no se toca.
 - `HSHELL_FLASH` en el shell hook → `CaptureTaskbarFlash`: notificación en la isla / chip de la barra (6 s, una por
   ventana cada 30 s, no pisa un toast activo) y `FLASHW_STOP` si la barra se oculta sola.
+- Mientras una ventana del propio mod está delante (isla desplegada con clic, paneles), `TopBarTick` mantiene
+  el último valor de pantalla completa: si no, la barra volvía y los avisos salían dos veces (FUX-213).
 - Pantalla completa con la barra superior registrada (ventana maximizada detrás): `g_topBarHiddenForFullscreen` quita
   `barSuppressed` y el aparcado de la barra, así que las alertas despiertan la pastilla como sin barra.
 

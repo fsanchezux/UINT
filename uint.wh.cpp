@@ -614,7 +614,10 @@ constexpr float kRenderPadX = 28.0f;
 constexpr float kRenderPadY = 22.0f;
 // Bottom corner radius of the notch shape (content DIPs). Kept small so the
 // island reads as part of the screen's top edge rather than a floating pill.
-constexpr float kNotchRadius = 14.0f;
+constexpr float kNotchRadius = 18.0f;
+// The inverted curves ("ears") where the notch meets the screen edge or the
+// top bar, as a share of the bottom radius (FUX-213).
+constexpr float kNotchEarRatio = 0.6f;
 constexpr UINT kClipboardImageThumbMaxDim = 160;  // longer-side cap for the clipboard image thumbnail
 
 // Layout for the expanded media dashboard. DrawMedia paints every element at an
@@ -701,7 +704,7 @@ namespace IdleStripLayout {
     constexpr float kPomoRingReserve = 24.0f;
     constexpr float kPomoRingRadius = 8.0f;
 
-    constexpr float kHeight = 36.0f;
+    constexpr float kHeight = 32.0f;
 
     // The stadium cap is kHeight/2 at each end, so anything below ~2x the height
     // stops reading as a pill. The ceiling keeps a long localized string from
@@ -3138,7 +3141,7 @@ int ResolveOffsetY(float windowHeight) {
 
     // Collapsed alert pills are ~44px tall in content space; the expanded
     // dashboard is MediaLayout::kExpandedHeight.
-    constexpr float kCollapsedHeight = 44.0f;
+    constexpr float kCollapsedHeight = 38.0f;
     const float span = MediaLayout::kExpandedHeight - kCollapsedHeight;
     const float t = (span <= 1.0f) ? 0.0f
                                    : Clamp((pillHeight - kCollapsedHeight) / span, 0.0f, 1.0f);
@@ -7536,7 +7539,19 @@ void TopBarTick() {
 
     // A real full-screen app (a game, a video) covers the work area anyway; get
     // out of its way, but keep the reservation so maximized windows do not jump.
-    const bool fullscreen = IsForegroundFullscreenOnMonitor(g_topBarHwnd, g_topBarMonitor);
+    // While one of our own windows is in front (the island clicked open over a
+    // full-screen app, a panel, the note editor) keep the last answer: the
+    // island is not full screen, and bringing the bar back then showed every
+    // alert twice, in the bar and in the island (FUX-213).
+    bool fullscreen = g_topBarHiddenForFullscreen;
+    {
+        DWORD fgPid = 0;
+        const HWND fg = GetForegroundWindow();
+        if (fg) GetWindowThreadProcessId(fg, &fgPid);
+        if (!fg || fgPid != GetCurrentProcessId()) {
+            fullscreen = IsForegroundFullscreenOnMonitor(g_topBarHwnd, g_topBarMonitor);
+        }
+    }
     if (fullscreen != g_topBarHiddenForFullscreen) {
         g_topBarHiddenForFullscreen = fullscreen;
         if (fullscreen) {
@@ -12378,9 +12393,18 @@ class Renderer {
 
         float r = std::min({radius, (rect.right - rect.left) * 0.5f, (rect.bottom - rect.top) * 0.5f});
         if (r < 0.0f) r = 0.0f;
+        // Inverted curves at the top corners, flaring out into the screen edge
+        // (or the top bar) like a hardware notch. They sit in the render padding,
+        // outside the content rect.
+        const float ear = std::clamp(std::min(r * kNotchEarRatio, (rect.bottom - rect.top) - r - 0.5f), 0.0f,
+                                     kRenderPadX - 2.0f);
 
-        sink->BeginFigure(D2D1::Point2F(rect.left, rect.top), D2D1_FIGURE_BEGIN_FILLED);
-        sink->AddLine(D2D1::Point2F(rect.right, rect.top));
+        sink->BeginFigure(D2D1::Point2F(rect.left - ear, rect.top), D2D1_FIGURE_BEGIN_FILLED);
+        sink->AddLine(D2D1::Point2F(rect.right + ear, rect.top));
+        if (ear > 0.0f) {
+            sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(rect.right, rect.top + ear), D2D1::SizeF(ear, ear), 0.0f,
+                                          D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
+        }
         sink->AddLine(D2D1::Point2F(rect.right, rect.bottom - r));
         if (r > 0.0f) {
             sink->AddArc(D2D1::ArcSegment(
@@ -12394,6 +12418,11 @@ class Renderer {
                 D2D1_SWEEP_DIRECTION_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
         } else {
             sink->AddLine(D2D1::Point2F(rect.left, rect.bottom));
+        }
+        if (ear > 0.0f) {
+            sink->AddLine(D2D1::Point2F(rect.left, rect.top + ear));
+            sink->AddArc(D2D1::ArcSegment(D2D1::Point2F(rect.left - ear, rect.top), D2D1::SizeF(ear, ear), 0.0f,
+                                          D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE, D2D1_ARC_SIZE_SMALL));
         }
         sink->EndFigure(D2D1_FIGURE_END_CLOSED);
         sink->Close();
@@ -13391,13 +13420,12 @@ class Renderer {
         return geom;
     }
 
-    // Pomodoro card, after an iOS timer Live Activity: the progress runs in
-    // yellow around the island's edge, the time it ends sits on top, the time
-    // left in the middle and two small buttons (play/pause, stop) below it.
+    // Pomodoro card, after an iOS timer Live Activity: the time it ends sits on
+    // top, the time left in the middle inside a pill whose border fills in
+    // yellow as it runs, and two small buttons (play/pause, stop) below it.
     void DrawPomodoroTab(D2D1_RECT_F rect) {
         PomoEnsureInit();
         const float w = rect.right - rect.left;
-        const float h = rect.bottom - rect.top;
         const bool focus = g_pomo.phase == PomoPhase::Focus;
         const bool started = PomoActive();
 
@@ -13405,16 +13433,43 @@ class Renderer {
         target_->CreateSolidColorBrush(D2D1::ColorF(1, 1, 1, 0.10f), &fill);
         if (!fill) return;
 
-        // Progress along the edge: a faint track, then the elapsed share in yellow.
+        // The time left, framed by a pill (FUX-214): a faint track, then the
+        // elapsed share in yellow, clockwise from the top centre.
+        const std::wstring clockText = PomoClockText();
+        const D2D1_RECT_F timeRect = D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 36.0f,
+                                                 rect.right - NotchCard::kRightInset, rect.top + 106.0f);
         {
-            constexpr float kStroke = 3.0f;
-            const float inset = kStroke * 0.5f + 2.0f;
-            const D2D1_RECT_F edge = D2D1::RectF(rect.left + inset, rect.top + inset, rect.right - inset,
-                                                 rect.bottom - inset);
-            const float radius = std::max(0.0f, ContentIslandRadius(h) - inset);
-            const float topRadius = g_settings.notchStyle ? 0.0f : radius;
-            ComPtr<ID2D1PathGeometry> outline = CreateOutlinePath(edge, topRadius, radius);
+            IDWriteTextFormat* format = hugeTextFormat_ ? hugeTextFormat_.Get() : clockFormat_.Get();
+            // Sized for the widest of the text and "00:00" so the pill doesn't
+            // jump as the digits change.
+            auto measure = [&](const std::wstring& s, float& tw, float& th) {
+                ComPtr<IDWriteTextLayout> layout;
+                if (format && SUCCEEDED(dwriteFactory_->CreateTextLayout(s.c_str(), static_cast<UINT32>(s.size()),
+                                                                         format, 1000.0f, 200.0f, &layout))) {
+                    DWRITE_TEXT_METRICS m = {};
+                    if (SUCCEEDED(layout->GetMetrics(&m))) {
+                        tw = std::max(tw, m.widthIncludingTrailingWhitespace);
+                        th = std::max(th, m.height);
+                    }
+                }
+            };
+            float textW = 0.0f;
+            float textH = 0.0f;
+            measure(clockText, textW, textH);
+            measure(L"00:00", textW, textH);
+            if (textW <= 0.0f) textW = 110.0f;
+            if (textH <= 0.0f) textH = 50.0f;
+
+            constexpr float kStroke = 5.0f;
+            const float pillH = std::min(textH + 8.0f, timeRect.bottom - timeRect.top);
+            const float pillW = std::min(textW + pillH, timeRect.right - timeRect.left);
+            const float pcx = (timeRect.left + timeRect.right) * 0.5f;
+            const float pcy = (timeRect.top + timeRect.bottom) * 0.5f;
+            const D2D1_RECT_F pill = D2D1::RectF(pcx - pillW * 0.5f, pcy - pillH * 0.5f, pcx + pillW * 0.5f,
+                                                 pcy + pillH * 0.5f);
+            ComPtr<ID2D1PathGeometry> outline = CreateOutlinePath(pill, pillH * 0.5f, pillH * 0.5f);
             if (outline) {
+                fill->SetColor(D2D1::ColorF(1, 1, 1, 0.14f));
                 target_->DrawGeometry(outline.Get(), fill.Get(), kStroke);
                 const float progress = PomoProgress();
                 float length = 0.0f;
@@ -13424,13 +13479,14 @@ class Renderer {
                     const float dashes[2] = {progress * length / kStroke, length / kStroke + 1.0f};
                     ComPtr<ID2D1StrokeStyle> style;
                     d2dFactory_->CreateStrokeStyle(
-                        D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_FLAT, D2D1_CAP_STYLE_FLAT, D2D1_CAP_STYLE_FLAT,
+                        D2D1::StrokeStyleProperties(D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND, D2D1_CAP_STYLE_ROUND,
                                                     D2D1_LINE_JOIN_ROUND, 10.0f, D2D1_DASH_STYLE_CUSTOM, 0.0f),
                         dashes, 2, &style);
                     fill->SetColor(kPomoYellow);
                     target_->DrawGeometry(outline.Get(), fill.Get(), kStroke, style.Get());
                 }
             }
+            fill->SetColor(D2D1::ColorF(1, 1, 1, 0.10f));
         }
 
         // Top line: the phase, and while it runs, a bell with the time it ends.
@@ -13481,8 +13537,7 @@ class Renderer {
         }
 
         // The time left.
-        DrawCardText(PomoClockText(), D2D1::RectF(rect.left + NotchCard::kPadX, rect.top + 36.0f,
-                                                  rect.right - NotchCard::kRightInset, rect.top + 106.0f),
+        DrawCardText(clockText, timeRect,
                      hugeTextFormat_ ? hugeTextFormat_.Get() : clockFormat_.Get(), textBrush_.Get(),
                      DWRITE_TEXT_ALIGNMENT_CENTER);
 
@@ -15844,7 +15899,7 @@ Activity ActivityForKind(IslandKind kind, const Settings& settings, const Shared
     switch (kind) {
         case IslandKind::Media:
             activity.width = 150.0f;
-            activity.height = 44.0f;
+            activity.height = 38.0f;
             break;
         case IslandKind::Progress:
             activity.width = 230.0f;
@@ -15868,7 +15923,7 @@ Activity ActivityForKind(IslandKind kind, const Settings& settings, const Shared
             break;
         case IslandKind::CapsLock:
             activity.width = 180.0f;
-            activity.height = 42.0f;
+            activity.height = 38.0f;
             break;
         case IslandKind::Device:
             activity.width = 240.0f;
@@ -15884,7 +15939,7 @@ Activity ActivityForKind(IslandKind kind, const Settings& settings, const Shared
             break;
         case IslandKind::DoNotDisturb:
             activity.width = 220.0f;
-            activity.height = 42.0f;
+            activity.height = 38.0f;
             break;
         case IslandKind::Idle:
         default:
