@@ -2,6 +2,8 @@
 
 ## Sin publicar
 
+- La isla tiene las esquinas más redondeadas, es un poco más baja y se une al borde de la pantalla (o a la barra superior) con una curva invertida.
+- A pantalla completa, desplegar la isla ya no hace volver la barra superior, así que un aviso como Bloq Mayús sale una sola vez.
 - Pomodoro: el progreso va en una píldora alrededor del tiempo restante en vez de por el borde de la isla.
 - Barra de tareas oculta: si Windows la deja a la vista al sacar el cursor (se quedaba con el foco y lo que
   escribías iba a ella), el mod devuelve el foco a la app y la vuelve a esconder.
