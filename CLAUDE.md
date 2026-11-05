@@ -15,6 +15,9 @@ usar `GH_TOKEN=$(gh auth token -u fsanchezux)`).
   - `uint.yaml`
   - `windows-11-taskbar-styler.yaml` (dock centrado, sin bandeja ni botón Inicio)
   - `taskbar-height-and-icon-size.yaml` (altura 60, iconos 32 para que salgan nítidos)
+- Windows: barra en varios monitores con `MMTaskbarMode` = 1 (HKCU ...\Explorer\Advanced; principal + donde
+  está la ventana). Con 2 (solo donde está la ventana), un icono anclado no veía su app abierta en otro
+  monitor y lanzaba otra (2026-11-05).
 
 ## Cómo se prueba
 
